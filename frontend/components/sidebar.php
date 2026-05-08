@@ -22,7 +22,7 @@ function isActive($pages, $current) {
         <i class="bi bi-grid-3x3-gap-fill"></i>
         <h4>Hệ thống CRM</h4>
     </div>
-    
+
     <div class="nav-menu">
         <!-- Dashboard -->
         <div class="nav-item">
@@ -31,7 +31,7 @@ function isActive($pages, $current) {
                 <span>Tổng quan</span>
             </a>
         </div>
-        
+
         <!-- Customers -->
         <div class="nav-item">
             <a href="customers.php" class="nav-link <?= isActive('customers', $currentPage) ?>">
@@ -39,15 +39,15 @@ function isActive($pages, $current) {
                 <span>Khách hàng</span>
             </a>
         </div>
-        
+
         <!-- Leads -->
         <div class="nav-item">
             <a href="leads.php" class="nav-link <?= isActive('leads', $currentPage) ?>">
                 <i class="bi bi-bullseye"></i>
-                <span>Leads</span>
+                <span>Khách hàng tiềm năng</span>
             </a>
         </div>
-        
+
         <!-- Deals -->
         <div class="nav-item">
             <a href="deals.php" class="nav-link <?= isActive(['deals', 'pipeline'], $currentPage) ?>">
@@ -55,7 +55,7 @@ function isActive($pages, $current) {
                 <span>Thỏa thuận</span>
             </a>
         </div>
-        
+
         <!-- Pipeline -->
         <div class="nav-item">
             <a href="pipeline.php" class="nav-link <?= isActive('pipeline', $currentPage) ?>">
@@ -63,7 +63,7 @@ function isActive($pages, $current) {
                 <span>Quy trình</span>
             </a>
         </div>
-        
+
         <!-- Tasks -->
         <div class="nav-item">
             <a href="tasks.php" class="nav-link <?= isActive('tasks', $currentPage) ?>">
@@ -71,10 +71,18 @@ function isActive($pages, $current) {
                 <span>Công việc</span>
             </a>
         </div>
-        
+
+        <!-- Activities -->
+        <div class="nav-item">
+            <a href="activities.php" class="nav-link <?= isActive('activities', $currentPage) ?>">
+                <i class="bi bi-clock-history"></i>
+                <span>Hoạt động</span>
+            </a>
+        </div>
+
         <!-- Divider -->
         <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
-        
+
         <!-- Báo cáo -->
         <div class="nav-item">
             <a href="reports.php" class="nav-link <?= isActive('reports', $currentPage) ?>">
@@ -82,7 +90,7 @@ function isActive($pages, $current) {
                 <span>Báo cáo</span>
             </a>
         </div>
-        
+
         <!-- Settings (Admin only) -->
         <div class="nav-item admin-only" style="display: none;">
             <a href="settings.php" class="nav-link <?= isActive('settings', $currentPage) ?>">
@@ -90,7 +98,7 @@ function isActive($pages, $current) {
                 <span>Cài đặt</span>
             </a>
         </div>
-        
+
         <div class="nav-item admin-only" style="display: none;">
             <a href="users.php" class="nav-link <?= isActive('users', $currentPage) ?>">
                 <i class="bi bi-person-gear"></i>

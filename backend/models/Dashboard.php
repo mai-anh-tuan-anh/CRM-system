@@ -29,7 +29,7 @@ class Dashboard {
             'total' => $stmt->fetch()['count'],
             'new_this_month' => $this->getNewThisMonth('customers', $userFilterCustomers),
             'active' => $this->getCountByStatus('customers', 'active', $userFilterCustomers),
-            'prospect' => $this->getCountByStatus('customers', 'prospect', $userFilterCustomers)
+            'inactive' => $this->getCountByStatus('customers', 'inactive', $userFilterCustomers)
         ];
         
         // ===== LEADS =====
@@ -204,7 +204,8 @@ class Dashboard {
      * Get upcoming items for dashboard
      */
     public function getUpcomingItems($userId = null, $limit = 5) {
-        $userFilter = $userId ? "AND assigned_to = {$userId}" : "";
+        $userFilterTasks = $userId ? "AND t.assigned_to = {$userId}" : "";
+        $userFilterDeals = $userId ? "AND d.assigned_to = {$userId}" : "";
         
         $items = [];
         
@@ -215,7 +216,7 @@ class Dashboard {
             FROM tasks t
             LEFT JOIN users u ON t.assigned_to = u.id
             WHERE t.status != 'completed' AND t.due_date >= NOW()
-            {$userFilter}
+            {$userFilterTasks}
             ORDER BY t.due_date ASC
             LIMIT {$limit}
         ");
@@ -230,7 +231,7 @@ class Dashboard {
             LEFT JOIN customers c ON d.customer_id = c.id
             WHERE d.stage NOT IN ('won', 'lost') 
             AND d.expected_close_date >= CURDATE()
-            {$userFilter}
+            {$userFilterDeals}
             ORDER BY d.expected_close_date ASC
             LIMIT {$limit}
         ");
@@ -243,8 +244,9 @@ class Dashboard {
      * Get performance metrics
      */
     public function getPerformanceMetrics($userId = null, $days = 30) {
-        $userFilter = $userId ? "AND performed_by = {$userId}" : "";
+        $activityUserFilter = $userId ? "AND performed_by = {$userId}" : "";
         $assignedFilter = $userId ? "AND assigned_to = {$userId}" : "";
+        $customerFilter = $userId ? "AND (assigned_to = {$userId} OR created_by = {$userId})" : "";
         
         $metrics = [];
         
@@ -253,7 +255,7 @@ class Dashboard {
             SELECT activity_type, COUNT(*) as count
             FROM activities
             WHERE performed_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
-            {$userFilter}
+            {$activityUserFilter}
             GROUP BY activity_type
         ");
         $metrics['activities'] = $stmt->fetchAll();
@@ -292,7 +294,7 @@ class Dashboard {
             SELECT COUNT(*) as count
             FROM customers
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
-            {$userFilter}
+            {$customerFilter}
         ");
         $metrics['new_customers'] = $stmt->fetch()['count'];
         

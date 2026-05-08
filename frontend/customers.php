@@ -11,11 +11,11 @@ include 'components/sidebar.php';
 
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
-    
+
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0">Quản lý khách hàng</h1>
+            <h1 class="h3 mb-0">Quản lý khách hàng chính thức</h1>
             <p class="text-muted mb-0">Danh sách khách hàng và thông tin chi tiết</p>
         </div>
         <div class="d-flex gap-2">
@@ -30,7 +30,7 @@ include 'components/sidebar.php';
             </a>
         </div>
     </div>
-    
+
     <!-- Filters -->
     <div class="card mb-4">
         <div class="card-body">
@@ -40,21 +40,34 @@ include 'components/sidebar.php';
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" id="statusFilter">
+                        <option value="active" selected>Hoạt động</option>
                         <option value="">Tất cả trạng thái</option>
-                        <option value="active">Hoạt động</option>
                         <option value="inactive">Không hoạt động</option>
-                        <option value="prospect">Tiềm năng</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" id="industryFilter">
                         <option value="">Tất cả ngành</option>
                         <!-- Dynamic options -->
+                        <option value="Technology">Công nghệ</option>
+                        <option value="Finance">Tài chính</option>
+                        <option value="Manufacturing">Sản xuất</option>
+                        <option value="Retail">Bán lẻ</option>
+                        <option value="Healthcare">Y tế</option>
+                        <option value="Education">Giáo dục</option>
+                        <option value="Other">Khác</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" id="sourceFilter">
                         <option value="">Tất cả nguồn</option>
+                        <option value="Website">Website</option>
+                        <option value="Social Media">Mạng xã hội</option>
+                        <option value="Referral">Giới thiệu</option>
+                        <option value="Email">Email</option>
+                        <option value="Phone">Điện thoại</option>
+                        <option value="Event">Sự kiện</option>
+                        <option value="Other">Khác</option>
                         <!-- Dynamic options -->
                     </select>
                 </div>
@@ -72,7 +85,7 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <!-- Bảng khách hàng -->
     <div class="card">
         <div class="card-body p-0">
@@ -184,7 +197,6 @@ include 'components/sidebar.php';
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Trạng thái</label>
                             <select class="form-select" id="status">
-                                <option value="prospect">Tiềm năng</option>
                                 <option value="active">Hoạt động</option>
                                 <option value="inactive">Không hoạt động</option>
                             </select>
@@ -236,8 +248,8 @@ include 'components/sidebar.php';
                     <div class="mb-3">
                         <label class="form-label">Trạng thái mặc định</label>
                         <select class="form-select" name="default_status">
-                            <option value="prospect">Tiềm năng</option>
-                            <option value="active">Hoạt động</option>
+                            <option value="active" selected>Hoạt động</option>
+                            <option value="inactive">Không hoạt động</option>
                         </select>
                     </div>
                 </div>
@@ -315,6 +327,19 @@ function loadCustomers() {
         });
 }
 
+function sendEmail(email, name) {
+    if (!email) {
+        alert(\'Khách hàng chưa có email\');
+        return;
+    }
+    const subject = \'Liên hệ từ công ty chúng tôi\';
+    const body = \'Chào \' + name + \',\\n\\nTôi liên hệ với bạn về công việc. Vui lòng phản hồi khi có thể.\\n\\nTrân trọng,\';
+    const gmailUrl = \'https://mail.google.com/mail/?view=cm&to=\' + encodeURIComponent(email) + 
+                    \'&su=\' + encodeURIComponent(subject) + 
+                    \'&body=\' + encodeURIComponent(body);
+    window.open(gmailUrl, \'_blank\');
+}
+
 function renderTable(customers) {
     const tbody = document.getElementById("customersTable");
     
@@ -332,14 +357,14 @@ function renderTable(customers) {
             </td>
             <td>${c.phone || "-"}</td>
             <td>${c.company_name || "-"}</td>
-            <td>${c.source || "-"}</td>
-            <td><span class="badge badge-${c.status}">${c.status}</span></td>
+            <td>${formatStatus(c.source) || "-"}</td>
+            <td><span class="badge ${getStatusBadgeClass(c.status)}">${formatStatus(c.status)}</span></td>
             <td>${c.assigned_to_name || "-"}</td>
             <td>${formatDate(c.created_at)}</td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    <a href="customer_detail.php?id=${c.id}" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
-                        <i class="bi bi-eye"></i>
+                    <a href="#" onclick="sendEmail(\'${c.email || \'\'}\', \'${c.full_name || \'Quý khách\'}\');return false;" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Gửi email">
+                        <i class="bi bi-envelope"></i>
                     </a>
                     <button class="btn btn-outline-secondary" onclick="editCustomer(${c.id})" data-bs-toggle="tooltip" title="Sửa">
                         <i class="bi bi-pencil"></i>
@@ -378,7 +403,7 @@ function loadFilterOptions() {
         });
     
     // Load users for assignment
-    fetch(`${API_BASE_URL}/users.php?role=sales`)
+    fetch(`${API_BASE_URL}/users.php?action=dropdown`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -485,7 +510,7 @@ function deleteCustomer(id) {
 
 function resetFilters() {
     document.getElementById("searchInput").value = "";
-    document.getElementById("statusFilter").value = "";
+    document.getElementById("statusFilter").value = "active";
     document.getElementById("industryFilter").value = "";
     document.getElementById("sourceFilter").value = "";
     document.getElementById("assignedFilter").value = "";
@@ -494,7 +519,7 @@ function resetFilters() {
 }
 
 function exportCustomers() {
-    window.location.href = `${API_BASE_URL}/export.php?type=customers`;
+    window.location.href = `${API_BASE_URL}/customers-export.php`;
 }
 
 function importCustomers(e) {
@@ -503,7 +528,7 @@ function importCustomers(e) {
     const formData = new FormData(e.target);
     formData.append("type", "customers");
     
-    fetch(`${API_BASE_URL}/import.php`, {
+    fetch(`${API_BASE_URL}/customers-import.php`, {
         method: "POST",
         body: formData
     })

@@ -77,6 +77,12 @@ function updateUserInterface() {
             el.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.full_name || currentUser.username)}&background=4e73df&color=fff`;
         }
     });
+
+    // Update user email
+    const userEmailElements = document.querySelectorAll('.user-email');
+    userEmailElements.forEach((el) => {
+        el.textContent = currentUser.email || 'email@example.com';
+    });
 }
 
 /**
@@ -89,6 +95,32 @@ function formatRole(role) {
         sales: 'Sales Representative'
     };
     return roles[role] || role;
+}
+
+/**
+ * Render avatar HTML with fallback to initials
+ * @param {string} avatar - Avatar URL or null
+ * @param {string} name - Full name for fallback initials
+ * @param {string} size - Size class (sm, md, lg)
+ * @param {string} extraClass - Additional CSS classes
+ * @returns {string} HTML string for avatar
+ */
+function renderAvatar(avatar, name, size = 'md', extraClass = '') {
+    const initials = (name || 'U').charAt(0).toUpperCase();
+    const sizeStyles = {
+        sm: 'width:24px;height:24px;font-size:0.75rem;',
+        md: 'width:32px;height:32px;font-size:0.875rem;',
+        lg: 'width:40px;height:40px;font-size:1rem;'
+    };
+    const style = sizeStyles[size] || sizeStyles.md;
+    const baseClass = `rounded-circle d-flex align-items-center justify-content-center overflow-hidden ${extraClass}`;
+
+    if (avatar) {
+        return `<div class="${baseClass}" style="${style}">
+            <img src="${avatar}" alt="${name}" style="width:100%;height:100%;object-fit:cover;">
+        </div>`;
+    }
+    return `<div class="${baseClass} bg-primary text-white" style="${style}">${initials}</div>`;
 }
 
 /**
@@ -259,7 +291,6 @@ function getStatusBadgeClass(status, type = 'status') {
         lost: 'badge-lost',
         active: 'badge-qualified',
         inactive: 'badge-lost',
-        prospect: 'badge-new',
 
         // Deal stages
         prospect: 'badge-prospect',
@@ -297,13 +328,14 @@ function formatStatus(status, type = 'status') {
         lost: 'Mất',
         active: 'Hoạt động',
         inactive: 'Không hoạt động',
-        prospect: 'Tiềm năng',
 
         // Deal stages
+        prospect: 'Tiềm năng',
         qualification: 'Xác minh',
         proposal: 'Đề xuất',
         negotiation: 'Thương lượng',
         won: 'Thành công',
+        lost: 'Thất bại',
 
         // Task status
         pending: 'Chờ xử lý',
@@ -315,10 +347,58 @@ function formatStatus(status, type = 'status') {
         low: 'Thấp',
         medium: 'Trung bình',
         high: 'Cao',
-        urgent: 'Khẩn cấp'
+        urgent: 'Khẩn cấp',
+
+        // Task types
+        call: 'Gọi điện',
+        meeting: 'Họp',
+        email: 'Email',
+        follow_up: 'Theo dõi',
+        demo: 'Demo',
+        task: 'Công việc',
+
+        // Source
+        website: 'Website',
+        referral: 'Giới thiệu',
+        social_media: 'Mạng xã hội',
+        cold_call: 'Gọi lạnh',
+        event: 'Sự kiện',
+        phone: 'Điện thoại',
+        email: 'Email',
+        other: 'Khác',
+
+        // Common
+        yes: 'Có',
+        no: 'Không',
+        and: 'và',
+        or: 'hoặc',
+
+        // Page info
+        lead: 'KH tiềm năng',
+        customer: 'Khách hàng',
+        deal: 'Thỏa thuận'
     };
 
-    return labels[status] || status;
+    // Convert to lowercase and handle snake_case conversion
+    const key = status?.toString().toLowerCase().replace(/ /g, '_');
+    return labels[key] || status;
+}
+
+/**
+ * Format task type for display
+ */
+function formatType(type) {
+    const types = {
+        call: 'Gọi điện',
+        meeting: 'Họp',
+        email: 'Email',
+        follow_up: 'Theo dõi',
+        demo: 'Demo',
+        task: 'Công việc'
+    };
+
+    const key = type?.toString().toLowerCase().replace(/ /g, '_');
+    return types[key] || type;
 }
 
 /**
@@ -472,6 +552,7 @@ window.formatDate = formatDate;
 window.timeAgo = timeAgo;
 window.getStatusBadgeClass = getStatusBadgeClass;
 window.formatStatus = formatStatus;
+window.formatType = formatType;
 window.truncateText = truncateText;
 window.createPagination = createPagination;
 window.debounce = debounce;

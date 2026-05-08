@@ -8,6 +8,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/helpers.php';
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../models/Task.php';
+require_once __DIR__ . '/../models/Customer.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $taskModel = new Task();
@@ -47,9 +48,9 @@ switch ($method) {
                 'upcoming' => isset($_GET['upcoming']) ? true : null
             ];
             
-            // Non-admin can only see their own tasks
+            // Non-admin can see their own assigned tasks OR unassigned tasks
             if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to'] = $user['id'];
+                $filters['assigned_to_or_null'] = $user['id'];
             } elseif (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
@@ -76,13 +77,25 @@ switch ($method) {
             jsonError('Assignee is required');
         }
         
+        // Check if related customer is active (if task is related to customer or deal)
+        if ($data['related_to_type'] === 'customer') {
+            $customerModel = new Customer();
+            $customer = $customerModel->getById($data['related_to_id']);
+            if (!$customer) {
+                jsonError('Customer not found');
+            }
+            if ($customer['status'] === 'inactive') {
+                jsonError('Cannot create task for inactive customer');
+            }
+        }
+        
         // Set created_by
         $data['created_by'] = $user['id'];
         
         $taskId = $taskModel->create($data);
         
         if ($taskId) {
-            logActivity('task_created', "Created task: {$data['title']}", 'task', $taskId, $user['id']);
+            logActivity('task_created', "Đã tạo công việc: {$data['title']}", 'task', $taskId, $user['id']);
             
             // Notify assignee
             if ($data['assigned_to'] != $user['id']) {
@@ -124,7 +137,7 @@ switch ($method) {
         // Handle complete action
         if (isset($data['action']) && $data['action'] === 'complete') {
             if ($taskModel->complete($taskId)) {
-                logActivity('task_completed', "Completed task: {$task['title']}", 'task', $taskId, $user['id']);
+                logActivity('task_completed', "Đã hoàn thành công việc: {$task['title']}", 'task', $taskId, $user['id']);
                 
                 // Notify creator
                 if ($task['created_by'] && $task['created_by'] != $user['id']) {
@@ -150,7 +163,7 @@ switch ($method) {
         $newAssignedTo = $data['assigned_to'] ?? $oldAssignedTo;
         
         if ($taskModel->update($taskId, $data)) {
-            logActivity('task_updated', "Updated task: {$task['title']}", 'task', $taskId, $user['id']);
+            logActivity('task_updated', "Đã cập nhật công việc: {$task['title']}", 'task', $taskId, $user['id']);
             
             // Notify new assignee
             if ($newAssignedTo != $oldAssignedTo && $newAssignedTo != $user['id']) {
@@ -196,7 +209,7 @@ switch ($method) {
         $result = $taskModel->delete($id);
         
         if ($result['success']) {
-            logActivity('task_deleted', "Deleted task: {$task['title']}", 'task', $id, $user['id']);
+            logActivity('task_deleted', "Đã xóa công việc: {$task['title']}", 'task', $id, $user['id']);
             jsonSuccess(null, 'Task deleted successfully');
         } else {
             jsonError($result['message']);

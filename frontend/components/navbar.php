@@ -12,23 +12,17 @@
         <button class="btn btn-link d-md-none me-3" id="sidebarToggle">
             <i class="bi bi-list fs-4"></i>
         </button>
-        
-        <!-- Tìm kiếm toàn cục -->
-        <div class="search-container d-none d-md-block">
-            <i class="bi bi-search search-icon"></i>
-            <input type="text" class="form-control search-input" id="globalSearch" 
-                   placeholder="Tìm kiếm khách hàng, KH tiềm năng, thỏa thuận..." autocomplete="off">
-            <div class="dropdown-menu w-100" id="searchResults"></div>
-        </div>
+
     </div>
-    
+
     <!-- Right side -->
     <div class="d-flex align-items-center gap-3">
         <!-- Thông báo -->
         <div class="dropdown">
             <button class="btn btn-link position-relative" data-bs-toggle="dropdown">
                 <i class="bi bi-bell fs-5 text-secondary"></i>
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount" style="display: none;">
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    id="notificationCount" style="display: none;">
                     0
                 </span>
             </button>
@@ -42,7 +36,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Quick Add -->
         <div class="dropdown d-none d-md-block">
             <button class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
@@ -63,7 +57,7 @@
                 </a>
             </div>
         </div>
-        
+
         <!-- Hồ sơ người dùng -->
         <div class="dropdown">
             <button class="btn btn-link d-flex align-items-center gap-2" data-bs-toggle="dropdown">
@@ -132,7 +126,7 @@ function loadRecentNotifications() {
                         </div>
                     </div>
                 `).join('');
-                
+
                 // Add click handlers
                 list.querySelectorAll('.notification-item').forEach(item => {
                     item.addEventListener('click', function() {
@@ -159,8 +153,12 @@ function getNotifIcon(type) {
 function markAsRead(id) {
     fetch('/customer_management/backend/api/notifications.php', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id })
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            id: id
+        })
     }).then(() => {
         loadNotifications();
         loadRecentNotifications();
@@ -170,56 +168,18 @@ function markAsRead(id) {
 function markAllAsRead() {
     fetch('/customer_management/backend/api/notifications.php', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'mark_all_read' })
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            action: 'mark_all_read'
+        })
     }).then(() => {
         loadNotifications();
         loadRecentNotifications();
     });
 }
 
-// Global search - Chỉ chạy sau khi debounce được load từ main.js
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('globalSearch');
-    if (searchInput && typeof debounce === 'function') {
-        searchInput.addEventListener('input', debounce(function() {
-            const query = this.value.trim();
-            if (query.length < 2) {
-                document.getElementById('searchResults').classList.remove('show');
-                return;
-            }
-            
-            fetch(`${API_BASE_URL}/search.php?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    const results = document.getElementById('searchResults');
-                    if (data.success && data.data.count > 0) {
-                        results.innerHTML = data.data.results.map(item => {
-                            const url = item.type === 'customer' ? `customers.php?id=${item.id}` :
-                                       item.type === 'lead' ? `leads.php?id=${item.id}` :
-                                       item.type === 'deal' ? `deals.php?id=${item.id}` :
-                                       `tasks.php?id=${item.id}`;
-                            return `
-                                <a class="dropdown-item" href="${url}">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-${getTypeIcon(item.type)} me-2 text-primary"></i>
-                                        <div>
-                                            <div class="fw-bold">${item.full_name || item.title || item.name}</div>
-                                            <small class="text-muted">${capitalizeFirst(item.type)} ${item.company_name ? '| ' + item.company_name : ''}</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            `;
-                        }).join('');
-                        results.classList.add('show');
-                    } else {
-                        results.innerHTML = '<div class="dropdown-item text-muted">Không tìm thấy kết quả</div>';
-                        results.classList.add('show');
-                    }
-                });
-        }, 300));
-    }
-});
 
 function getTypeIcon(type) {
     const icons = {
@@ -231,12 +191,6 @@ function getTypeIcon(type) {
     return icons[type] || 'circle';
 }
 
-// Close search results when clicking outside
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.search-container')) {
-        document.getElementById('searchResults')?.classList.remove('show');
-    }
-});
 
 // Mark all read button
 document.getElementById('markAllRead')?.addEventListener('click', markAllAsRead);

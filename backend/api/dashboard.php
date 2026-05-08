@@ -29,16 +29,21 @@ $userId = ($user['role'] === 'admin' || $user['role'] === 'manager') ? null : $u
 
 switch ($action) {
     case 'overview':
-        // Get complete dashboard overview
-        $data = [
-            'statistics' => $dashboardModel->getStatistics($userId),
-            'upcoming' => $dashboardModel->getUpcomingItems($userId, 5),
-            'recent_activity' => $activityModel->getRecent(10, $userId),
-            'performance' => $dashboardModel->getPerformanceMetrics($userId, 30),
-            'comparison' => $dashboardModel->getComparisonData()
-        ];
-        
-        jsonSuccess($data);
+        try {
+            // Get complete dashboard overview
+            $data = [
+                'statistics' => $dashboardModel->getStatistics($userId),
+                'upcoming' => $dashboardModel->getUpcomingItems($userId, 5),
+                'recent_activity' => $activityModel->getRecent(10, $userId),
+                'performance' => $dashboardModel->getPerformanceMetrics($userId, 30),
+                'comparison' => $dashboardModel->getComparisonData()
+            ];
+            
+            jsonSuccess($data);
+        } catch (Throwable $e) {
+            error_log('Dashboard overview error: ' . $e->getMessage());
+            jsonError('Server error: ' . $e->getMessage(), 500);
+        }
         break;
         
     case 'stats':

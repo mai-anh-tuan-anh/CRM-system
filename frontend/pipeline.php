@@ -190,6 +190,30 @@ include 'components/sidebar.php';
             </div>
             <div class="column-body column-drop-zone" id="negotiation-deals"></div>
         </div>
+
+        <!-- Won Column -->
+        <div class="pipeline-column" data-stage="won">
+            <div class="column-header">
+                <div>
+                    <h5><i class="bi bi-check-circle text-success me-2"></i>Thành công</h5>
+                    <div class="column-total" id="won-total">0 thỏa thuận • 0 ₫</div>
+                </div>
+                <span class="badge bg-success" id="won-count">0</span>
+            </div>
+            <div class="column-body column-drop-zone" id="won-deals"></div>
+        </div>
+
+        <!-- Lost Column -->
+        <div class="pipeline-column" data-stage="lost">
+            <div class="column-header">
+                <div>
+                    <h5><i class="bi bi-x-circle text-secondary me-2"></i>Thất bại</h5>
+                    <div class="column-total" id="lost-total">0 thỏa thuận • 0 ₫</div>
+                </div>
+                <span class="badge bg-secondary" id="lost-count">0</span>
+            </div>
+            <div class="column-body column-drop-zone" id="lost-deals"></div>
+        </div>
     </div>
 </div>
 
@@ -220,6 +244,7 @@ include 'components/sidebar.php';
 $inlineJS = '
 let draggedDeal = null;
 let targetStage = null;
+let selectedDealId = null;
 let quickEditModal;
 
 // Initialize
@@ -250,8 +275,27 @@ function loadPipeline() {
         });
 }
 
+// Helper function to render avatar
+function renderAvatar(avatar, name, size = \'md\', extraClass = \'\') {
+    const initials = (name || \'U\').charAt(0).toUpperCase();
+    const sizeStyles = {
+        sm: \'width:24px;height:24px;font-size:0.75rem;\',
+        md: \'width:32px;height:32px;font-size:0.875rem;\',
+        lg: \'width:40px;height:40px;font-size:1rem;\'
+    };
+    const style = sizeStyles[size] || sizeStyles.md;
+    const baseClass = `rounded-circle d-flex align-items-center justify-content-center overflow-hidden ${extraClass}`;
+
+    if (avatar) {
+        return `<div class="${baseClass}" style="${style}">
+            <img src="${avatar}" alt="${name}" style="width:100%;height:100%;object-fit:cover;">
+        </div>`;
+    }
+    return `<div class="${baseClass} bg-primary text-white" style="${style}">${initials}</div>`;
+}
+
 function renderPipeline(pipelineData) {
-    const stages = ["prospect", "qualification", "proposal", "negotiation"];
+    const stages = ["prospect", "qualification", "proposal", "negotiation", "won", "lost"];
     
     stages.forEach(stage => {
         const deals = pipelineData.stages[stage] || [];
@@ -270,9 +314,7 @@ function renderPipeline(pipelineData) {
                 <div class="deal-value">${formatCurrency(deal.value || 0)}</div>
                 <div class="deal-meta">
                     <span>${deal.expected_close_date ? formatDate(deal.expected_close_date) : "Không có ngày"}</span>
-                    <div class="deal-avatar" title="${deal.assigned_to_name || "Chưa gán"}">
-                        ${(deal.assigned_to_name || "C").charAt(0).toUpperCase()}
-                    </div>
+                    ${renderAvatar(deal.assigned_to_avatar, deal.assigned_to_name, \'sm\', \'deal-avatar\')}
                 </div>
             </div>
         `).join("");
@@ -283,7 +325,7 @@ function renderPipeline(pipelineData) {
 }
 
 function loadUsers() {
-    fetch(`${API_BASE_URL}/users.php`)
+    fetch(`${API_BASE_URL}/users.php?action=dropdown`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -295,8 +337,52 @@ function loadUsers() {
         });
 }
 
+let scrollInterval = null;
+
 function setupDragAndDrop() {
     const dropZones = document.querySelectorAll(".column-drop-zone");
+    const pipelineBoard = document.getElementById("pipelineBoard");
+    
+    // Auto-scroll when dragging near edges
+    document.addEventListener("dragover", function(e) {
+        if (!draggedDeal) return;
+        
+        const rect = pipelineBoard.getBoundingClientRect();
+        const scrollSpeed = 15;
+        const edgeThreshold = 100; // pixels from edge
+        
+        // Check if near right edge
+        if (e.clientX > rect.right - edgeThreshold) {
+            if (!scrollInterval) {
+                scrollInterval = setInterval(() => {
+                    pipelineBoard.scrollLeft += scrollSpeed;
+                }, 16);
+            }
+        }
+        // Check if near left edge
+        else if (e.clientX < rect.left + edgeThreshold) {
+            if (!scrollInterval) {
+                scrollInterval = setInterval(() => {
+                    pipelineBoard.scrollLeft -= scrollSpeed;
+                }, 16);
+            }
+        }
+        // Stop scrolling if not near edges
+        else {
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
+                scrollInterval = null;
+            }
+        }
+    });
+    
+    // Stop scrolling on drag end
+    document.addEventListener("dragend", function() {
+        if (scrollInterval) {
+            clearInterval(scrollInterval);
+            scrollInterval = null;
+        }
+    });
     
     dropZones.forEach(zone => {
         zone.addEventListener("dragover", function(e) {
@@ -318,7 +404,8 @@ function setupDragAndDrop() {
                 
                 if (newStage !== currentStage) {
                     targetStage = newStage;
-                    const stageNames = {prospect: "Tiềm năng", qualification: "Xác minh", proposal: "Đề xuất", negotiation: "Thương lượng"};
+                    selectedDealId = draggedDeal.dataset.dealId; // Save deal ID before dragend clears it
+                    const stageNames = {prospect: "Tiềm năng", qualification: "Xác minh", proposal: "Đề xuất", negotiation: "Thương lượng", won: "Thành công", lost: "Thất bại"};
                     document.getElementById("newStageName").textContent = stageNames[newStage] || newStage;
                     document.getElementById("stageChangeNote").value = "";
                     quickEditModal.show();
@@ -346,10 +433,18 @@ function attachDragHandlers() {
 }
 
 function confirmStageChange() {
-    if (!draggedDeal || !targetStage) return;
+    console.log("confirmStageChange called", { selectedDealId, targetStage });
     
-    const dealId = draggedDeal.dataset.dealId;
+    if (!selectedDealId || !targetStage) {
+        console.error("Missing selectedDealId or targetStage", { selectedDealId, targetStage });
+        showAlert("Lỗi: Không tìm thấy thông tin deal hoặc giai đoạn mới", "danger");
+        return;
+    }
+    
+    const dealId = selectedDealId;
     const note = document.getElementById("stageChangeNote").value;
+    
+    console.log("Sending request:", { dealId, targetStage, note });
     
     fetch(`${API_BASE_URL}/deals.php`, {
         method: "PUT",
@@ -362,13 +457,20 @@ function confirmStageChange() {
     })
     .then(response => response.json())
     .then(result => {
+        console.log("Response:", result);
         if (result.success) {
             quickEditModal.hide();
+            selectedDealId = null; // Clear after successful update
+            targetStage = null;
             showAlert("Đã cập nhật giai đoạn thỏa thuận!", "success");
             loadPipeline();
         } else {
-            showAlert(result.message, "danger");
+            showAlert(result.message || "Có lỗi xảy ra", "danger");
         }
+    })
+    .catch(error => {
+        console.error("Fetch error:", error);
+        showAlert("Lỗi kết nối: " + error.message, "danger");
     });
 }
 ';

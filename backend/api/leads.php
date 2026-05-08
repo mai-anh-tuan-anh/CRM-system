@@ -44,9 +44,9 @@ switch ($method) {
                 'search' => $_GET['search'] ?? null
             ];
             
-            // Non-admin can only see their own leads
+            // Non-admin can see their own assigned leads OR unassigned leads
             if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to'] = $user['id'];
+                $filters['assigned_to_or_null'] = $user['id'];
             } elseif (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
@@ -78,7 +78,7 @@ switch ($method) {
         $leadId = $leadModel->create($data);
         
         if ($leadId) {
-            logActivity('lead_created', "Created lead: {$data['full_name']}", 'lead', $leadId, $user['id']);
+            logActivity('lead_created', "Đã tạo khách hàng tiềm năng: {$data['full_name']}", 'lead', $leadId, $user['id']);
             
             // Notify assignee
             if (!empty($data['assigned_to']) && $data['assigned_to'] != $user['id']) {
@@ -128,10 +128,10 @@ switch ($method) {
         if ($leadModel->update($leadId, $data)) {
             // Log status change
             if ($newStatus !== $oldStatus) {
-                logActivity('status_change', "Lead status changed from {$oldStatus} to {$newStatus}", 'lead', $leadId, $user['id'], ['from' => $oldStatus, 'to' => $newStatus]);
+                logActivity('status_change', "Đã thay đổi trạng thái lead từ {$oldStatus} thành {$newStatus}", 'lead', $leadId, $user['id'], ['from' => $oldStatus, 'to' => $newStatus]);
             }
             
-            logActivity('lead_updated', "Updated lead: {$lead['full_name']}", 'lead', $leadId, $user['id']);
+            logActivity('lead_updated', "Đã cập nhật khách hàng tiềm năng: {$lead['full_name']}", 'lead', $leadId, $user['id']);
             
             // Notify new assignee
             if ($newAssignedTo != $oldAssignedTo && $newAssignedTo != $user['id']) {
@@ -172,7 +172,7 @@ switch ($method) {
         $result = $leadModel->delete($id);
         
         if ($result['success']) {
-            logActivity('lead_deleted', "Deleted lead: {$lead['full_name']}", 'lead', $id, $user['id']);
+            logActivity('lead_deleted', "Đã xóa khách hàng tiềm năng: {$lead['full_name']}", 'lead', $id, $user['id']);
             jsonSuccess(null, 'Lead deleted successfully');
         } else {
             jsonError($result['message']);

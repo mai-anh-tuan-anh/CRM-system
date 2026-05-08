@@ -49,9 +49,9 @@ switch ($method) {
                 'search' => $_GET['search'] ?? null
             ];
             
-            // Non-admin can only see their own or unassigned customers
+            // Non-admin can see their own assigned customers OR unassigned customers
             if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to'] = $user['id'];
+                $filters['assigned_to_or_null'] = $user['id'];
             } elseif (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
@@ -65,41 +65,51 @@ switch ($method) {
         break;
         
     case 'POST':
-        $data = json_decode(file_get_contents('php://input'), true);
-        
-        // Validate required fields
-        if (empty($data['full_name'])) {
-            jsonError('Customer name is required');
-        }
-        
-        // Set created_by
-        $data['created_by'] = $user['id'];
-        
-        // If sales user creating, assign to self
-        if ($user['role'] === 'sales') {
-            $data['assigned_to'] = $user['id'];
-        }
-        
-        $customerId = $customerModel->create($data);
-        
-        if ($customerId) {
-            logActivity('customer_created', "Created customer: {$data['full_name']}", 'customer', $customerId, $user['id']);
+        try {
+            $data = json_decode(file_get_contents('php://input'), true);
             
-            // Create notification for assigned user
-            if (!empty($data['assigned_to']) && $data['assigned_to'] != $user['id']) {
-                createNotification(
-                    $data['assigned_to'],
-                    'New Customer Assigned',
-                    "Customer {$data['full_name']} has been assigned to you",
-                    'info',
-                    'customer',
-                    $customerId
-                );
+            // Validate required fields
+            if (empty($data['full_name'])) {
+                jsonError('Customer name is required');
             }
             
-            jsonSuccess(['id' => $customerId], 'Customer created successfully');
-        } else {
-            jsonError('Failed to create customer');
+            // Set created_by
+            $data['created_by'] = $user['id'];
+            
+            // Fix: Convert empty assigned_to to null
+            if (empty($data['assigned_to'])) {
+                $data['assigned_to'] = null;
+            }
+            
+            // If sales user creating, assign to self
+            if ($user['role'] === 'sales') {
+                $data['assigned_to'] = $user['id'];
+            }
+            
+            $customerId = $customerModel->create($data);
+            
+            if ($customerId) {
+                logActivity('customer_created', "Đã tạo khách hàng: {$data['full_name']}", 'customer', $customerId, $user['id']);
+                
+                // Create notification for assigned user
+                if (!empty($data['assigned_to']) && $data['assigned_to'] != $user['id']) {
+                    createNotification(
+                        $data['assigned_to'],
+                        'New Customer Assigned',
+                        "Customer {$data['full_name']} has been assigned to you",
+                        'info',
+                        'customer',
+                        $customerId
+                    );
+                }
+                
+                jsonSuccess(['id' => $customerId], 'Customer created successfully');
+            } else {
+                jsonError('Failed to create customer');
+            }
+        } catch (Exception $e) {
+            error_log('Customer create error: ' . $e->getMessage());
+            jsonError('Server error: ' . $e->getMessage(), 500);
         }
         break;
         
@@ -127,7 +137,7 @@ switch ($method) {
         $newAssignedTo = $data['assigned_to'] ?? $oldAssignedTo;
         
         if ($customerModel->update($customerId, $data)) {
-            logActivity('customer_updated', "Updated customer: {$customer['full_name']}", 'customer', $customerId, $user['id']);
+            logActivity('customer_updated', "Đã cập nhật khách hàng: {$customer['full_name']}", 'customer', $customerId, $user['id']);
             
             // Notify new assignee
             if ($newAssignedTo != $oldAssignedTo && $newAssignedTo != $user['id']) {
@@ -173,7 +183,7 @@ switch ($method) {
         $result = $customerModel->delete($id);
         
         if ($result['success']) {
-            logActivity('customer_deleted', "Deleted customer: {$customer['full_name']}", 'customer', $id, $user['id']);
+            logActivity('customer_deleted', "Đã xóa khách hàng: {$customer['full_name']}", 'customer', $id, $user['id']);
             jsonSuccess(null, 'Customer deleted successfully');
         } else {
             jsonError($result['message']);

@@ -39,6 +39,12 @@ class Task {
             $params[] = $filters['assigned_to'];
         }
         
+        // Filter for sales to see their assigned items OR unassigned items
+        if (!empty($filters['assigned_to_or_null'])) {
+            $where[] = "(t.assigned_to = ? OR t.assigned_to IS NULL)";
+            $params[] = $filters['assigned_to_or_null'];
+        }
+        
         if (!empty($filters['related_to_type'])) {
             $where[] = "t.related_to_type = ?";
             $params[] = $filters['related_to_type'];

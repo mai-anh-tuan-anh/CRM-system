@@ -29,6 +29,12 @@ class Lead {
             $params[] = $filters['assigned_to'];
         }
         
+        // Filter for sales to see their assigned items OR unassigned items
+        if (!empty($filters['assigned_to_or_null'])) {
+            $where[] = "(l.assigned_to = ? OR l.assigned_to IS NULL)";
+            $params[] = $filters['assigned_to_or_null'];
+        }
+        
         if (!empty($filters['priority'])) {
             $where[] = "l.priority = ?";
             $params[] = $filters['priority'];
@@ -95,8 +101,8 @@ class Lead {
         
         $stmt = $this->db->prepare("
             INSERT INTO leads (lead_code, full_name, email, phone, company_name, job_title,
-                source, status, priority, score, assigned_to, notes, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                address, city, website, source, status, priority, score, assigned_to, notes, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $stmt->execute([
@@ -106,6 +112,9 @@ class Lead {
             $data['phone'] ?? null,
             $data['company_name'] ?? null,
             $data['job_title'] ?? null,
+            $data['address'] ?? null,
+            $data['city'] ?? null,
+            $data['website'] ?? null,
             $data['source'] ?? null,
             $data['status'] ?? 'new',
             $data['priority'] ?? 'medium',
@@ -126,7 +135,8 @@ class Lead {
         $params = [];
         
         $allowedFields = ['full_name', 'email', 'phone', 'company_name', 'job_title',
-                         'source', 'status', 'priority', 'score', 'assigned_to', 'notes'];
+                         'address', 'city', 'website', 'source', 'status', 'priority', 
+                         'score', 'assigned_to', 'notes'];
         
         foreach ($allowedFields as $field) {
             if (isset($data[$field])) {

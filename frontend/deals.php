@@ -11,7 +11,7 @@ include 'components/sidebar.php';
 
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
-    
+
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -19,6 +19,12 @@ include 'components/sidebar.php';
             <p class="text-muted mb-0">Theo dõi cơ hội kinh doanh và quy trình bán hàng</p>
         </div>
         <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-upload me-2"></i>Nhập
+            </button>
+            <button class="btn btn-outline-secondary" onclick="exportDeals()">
+                <i class="bi bi-download me-2"></i>Xuất
+            </button>
             <a href="pipeline.php" class="btn btn-outline-primary">
                 <i class="bi bi-kanban me-2"></i>Xem quy trình
             </a>
@@ -27,7 +33,7 @@ include 'components/sidebar.php';
             </a>
         </div>
     </div>
-    
+
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -83,7 +89,7 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <!-- Filters -->
     <div class="card mb-4">
         <div class="card-body">
@@ -104,12 +110,12 @@ include 'components/sidebar.php';
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" id="customerFilter">
-                        <option value="">Tất cả KH</option>
+                        <option value="">Tất cả khách hàng</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" id="assignedFilter">
-                        <option value="">Tất cả NV</option>
+                        <option value="">Tất cả nhân viên</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -123,7 +129,7 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <!-- Deals Table -->
     <div class="card">
         <div class="card-body p-0">
@@ -243,8 +249,54 @@ include 'components/sidebar.php';
     </div>
 </div>
 
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nhập thỏa thuận</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn file Excel</label>
+                        <input type="file" class="form-control" name="file" accept=".xls,.xlsx" required>
+                        <div class="form-text">File phải có cột: title, customer_id, value, currency, stage,
+                            probability, expected_close_date, source</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Người phụ trách</label>
+                        <select class="form-select" name="assigned_to" id="importAssignedTo">
+                            <option value="">Tôi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-link" onclick="downloadSampleExcel()">Tải file mẫu</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Nhập</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php
 $inlineJS = '
+// Helper function to format stage names
+function formatStatus(status) {
+    const labels = {
+        prospect: "Tiềm năng",
+        qualification: "Xác minh",
+        proposal: "Đề xuất",
+        negotiation: "Thương lượng",
+        won: "Thành công",
+        lost: "Thất bại"
+    };
+    return labels[status] || status;
+}
+
 let currentPage = 1;
 let dealModal;
 
@@ -275,6 +327,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 300));
     
     document.getElementById("dealForm").addEventListener("submit", saveDeal);
+    document.getElementById("importForm").addEventListener("submit", importDeals);
     
     // URL params
     const urlParams = new URLSearchParams(window.location.search);
@@ -329,7 +382,7 @@ function renderTable(deals) {
     const tbody = document.getElementById("dealsTable");
     
     if (deals.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không có deals nào</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không có thỏa thuận nào</td></tr>`;
         return;
     }
     
@@ -344,7 +397,7 @@ function renderTable(deals) {
                 <small class="text-muted">${d.customer_company || ""}</small>
             </td>
             <td class="fw-bold text-success">${formatCurrency(d.value || 0)}</td>
-            <td><span class="badge badge-${d.stage}">${d.stage}</span></td>
+            <td><span class="badge badge-${d.stage}">${formatStatus(d.stage)}</span></td>
             <td>
                 <div class="progress" style="height: 6px;">
                     <div class="progress-bar" role="progressbar" style="width: ${d.probability || 0}%"></div>
@@ -378,25 +431,36 @@ function renderPagination(pagination) {
 }
 
 function loadFilterOptions() {
-    // Load customers
+    // Load active customers only for deal creation dropdown
+    fetch(`${API_BASE_URL}/customers.php?status=active&per_page=1000`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const select = document.getElementById("customerId");
+                if (select) {
+                    data.data.data.forEach(c => {
+                        select.innerHTML += `<option value="${c.id}">${c.full_name} ${c.company_name ? "(" + c.company_name + ")" : ""}</option>`;
+                    });
+                }
+            }
+        });
+
+    // Load all customers for filter dropdown
     fetch(`${API_BASE_URL}/customers.php?per_page=1000`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const selects = ["customerId", "customerFilter"];
-                selects.forEach(selectId => {
-                    const select = document.getElementById(selectId);
-                    if (select) {
-                        data.data.data.forEach(c => {
-                            select.innerHTML += `<option value="${c.id}">${c.full_name} ${c.company_name ? "(" + c.company_name + ")" : ""}</option>`;
-                        });
-                    }
-                });
+                const select = document.getElementById("customerFilter");
+                if (select) {
+                    data.data.data.forEach(c => {
+                        select.innerHTML += `<option value="${c.id}">${c.full_name} ${c.company_name ? "(" + c.company_name + ")" : ""}</option>`;
+                    });
+                }
             }
         });
     
     // Load users
-    fetch(`${API_BASE_URL}/users.php`)
+    fetch(`${API_BASE_URL}/users.php?action=dropdown`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -519,6 +583,46 @@ function resetFilters() {
     document.getElementById("minValue").value = "";
     currentPage = 1;
     loadDeals();
+}
+
+function exportDeals() {
+    window.location.href = API_BASE_URL + "/deals-export.php";
+}
+
+function importDeals(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    fetch(API_BASE_URL + "/deals-import.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showAlert("Import thành công: " + result.data.imported + " thỏa thuận", "success");
+            bootstrap.Modal.getInstance(document.getElementById("importModal")).hide();
+            loadDeals();
+            loadStats();
+        } else {
+            showAlert(result.message, "danger");
+        }
+    })
+    .catch(error => {
+        console.error("Import error:", error);
+        showAlert("Lỗi khi import: " + error.message, "danger");
+    });
+}
+
+function downloadSampleExcel() {
+    const csv = "title,customer_id,value,currency,stage,probability,expected_close_date,source\nThỏa thuận phần mềm CRM,1,50000000,VND,prospect,20,2025-12-31,Website\nHợp đồng tư vấn,2,100000000,VND,qualification,40,2025-11-30,Facebook";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "deals_sample.csv";
+    a.click();
 }
 ';
 

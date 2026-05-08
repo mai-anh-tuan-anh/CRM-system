@@ -11,18 +11,26 @@ include 'components/sidebar.php';
 
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
-    
+
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-0">Quản lý Công việc</h1>
             <p class="text-muted mb-0">Theo dõi công việc và hoạt động</p>
         </div>
-        <a href="tasks.php?action=add" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i>Thêm công việc
-        </a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-upload me-2"></i>Nhập
+            </button>
+            <button class="btn btn-outline-secondary" onclick="exportTasks()">
+                <i class="bi bi-download me-2"></i>Xuất
+            </button>
+            <a href="tasks.php?action=add" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Thêm công việc
+            </a>
+        </div>
     </div>
-    
+
     <!-- Thống kê công việc -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -78,7 +86,7 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <!-- Tabs -->
     <ul class="nav nav-tabs mb-4" id="taskTabs">
         <li class="nav-item">
@@ -97,7 +105,7 @@ include 'components/sidebar.php';
             <a class="nav-link" href="#" data-filter="upcoming">Sắp tới</a>
         </li>
     </ul>
-    
+
     <!-- Filters -->
     <div class="card mb-4">
         <div class="card-body">
@@ -135,7 +143,7 @@ include 'components/sidebar.php';
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" id="assignedFilter">
-                        <option value="">Tất cả NV</option>
+                        <option value="">Tất cả nhân viên</option>
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -146,7 +154,7 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <!-- Bảng công việc -->
     <div class="card">
         <div class="card-body p-0">
@@ -261,6 +269,39 @@ include 'components/sidebar.php';
     </div>
 </div>
 
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nhập công việc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn file Excel</label>
+                        <input type="file" class="form-control" name="file" accept=".xls,.xlsx" required>
+                        <div class="form-text">File phải có cột: title, type, status, priority, due_date,
+                            related_to_type, related_to_id</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Người phụ trách</label>
+                        <select class="form-select" name="assigned_to" id="importAssignedTo">
+                            <option value="">Tôi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-link" onclick="downloadSampleExcel()">Tải file mẫu</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Nhập</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php
 $inlineJS = '
 let currentPage = 1;
@@ -306,6 +347,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     
     document.getElementById("taskForm").addEventListener("submit", saveTask);
+    document.getElementById("importForm").addEventListener("submit", importTasks);
     
     // URL params
     const urlParams = new URLSearchParams(window.location.search);
@@ -397,9 +439,9 @@ function renderTable(tasks) {
                 <div class="fw-bold">${t.title}</div>
                 <small class="text-muted">${truncateText(t.description, 50)}</small>
             </td>
-            <td>${t.related_to_type} #${t.related_to_id}</td>
-            <td><i class="bi bi-${typeIcons[t.type] || "circle"} me-1"></i>${t.type}</td>
-            <td><span class="badge badge-${t.priority}">${t.priority}</span></td>
+            <td>${formatStatus(t.related_to_type)} #${t.related_to_id}</td>
+            <td><i class="bi bi-${typeIcons[t.type] || "circle"} me-1"></i>${formatType(t.type)}</td>
+            <td><span class="badge badge-${t.priority}">${formatStatus(t.priority)}</span></td>
             <td>
                 ${t.due_date ? `
                 <span class="${isOverdue ? "text-danger fw-bold" : ""}">
@@ -409,7 +451,7 @@ function renderTable(tasks) {
                 ` : "-"}
             </td>
             <td>${t.assigned_to_name || "-"}</td>
-            <td><span class="badge badge-${t.status}">${t.status}</span></td>
+            <td><span class="badge badge-${t.status}">${formatStatus(t.status)}</span></td>
             <td>
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-outline-secondary" onclick="editTask(${t.id})" data-bs-toggle="tooltip" title="Sửa">
@@ -435,7 +477,7 @@ function renderPagination(pagination) {
 }
 
 function loadFilterOptions() {
-    fetch(`${API_BASE_URL}/users.php`)
+    fetch(`${API_BASE_URL}/users.php?action=dropdown`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -460,11 +502,17 @@ function loadRelatedOptions(type) {
     if (!type) return;
     
     let endpoint = "";
-    if (type === "customer") endpoint = "customers.php";
-    else if (type === "lead") endpoint = "leads.php";
-    else if (type === "deal") endpoint = "deals.php";
+    let params = "?per_page=100";
+    if (type === "customer") {
+        endpoint = "customers.php";
+        params = "?status=active&per_page=100"; // Only show active customers
+    } else if (type === "lead") {
+        endpoint = "leads.php";
+    } else if (type === "deal") {
+        endpoint = "deals.php";
+    }
     
-    fetch(`${API_BASE_URL}/${endpoint}?per_page=100`)
+    fetch(`${API_BASE_URL}/${endpoint}${params}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -586,6 +634,46 @@ function resetFilters() {
     document.querySelectorAll("#taskTabs .nav-link").forEach(tab => tab.classList.remove("active"));
     document.querySelector("[data-filter=\"all\"]").classList.add("active");
     loadTasks();
+}
+
+function exportTasks() {
+    window.location.href = API_BASE_URL + "/tasks-export.php";
+}
+
+function importTasks(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    fetch(API_BASE_URL + "/tasks-import.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showAlert("Import thành công: " + result.data.imported + " công việc", "success");
+            bootstrap.Modal.getInstance(document.getElementById("importModal")).hide();
+            loadTasks();
+            loadStats();
+        } else {
+            showAlert(result.message, "danger");
+        }
+    })
+    .catch(error => {
+        console.error("Import error:", error);
+        showAlert("Lỗi khi import: " + error.message, "danger");
+    });
+}
+
+function downloadSampleExcel() {
+    const csv = "title,type,status,priority,due_date,related_to_type,related_to_id\nGọi điện báo giá,call,pending,high,2025-06-15,customer,1\nGửi email báo giá,email,pending,medium,2025-06-16,customer,1";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tasks_sample.csv";
+    a.click();
 }
 ';
 

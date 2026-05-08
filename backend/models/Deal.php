@@ -29,6 +29,12 @@ class Deal {
             $params[] = $filters['assigned_to'];
         }
         
+        // Filter for sales to see their assigned items OR unassigned items
+        if (!empty($filters['assigned_to_or_null'])) {
+            $where[] = "(d.assigned_to = ? OR d.assigned_to IS NULL)";
+            $params[] = $filters['assigned_to_or_null'];
+        }
+        
         if (!empty($filters['customer_id'])) {
             $where[] = "d.customer_id = ?";
             $params[] = $filters['customer_id'];
@@ -287,6 +293,12 @@ class Deal {
         if (!empty($filters['assigned_to'])) {
             $where[] = "d.assigned_to = ?";
             $params[] = $filters['assigned_to'];
+        }
+        
+        // Filter for sales to see their assigned items OR unassigned items
+        if (!empty($filters['assigned_to_or_null'])) {
+            $where[] = "(d.assigned_to = ? OR d.assigned_to IS NULL)";
+            $params[] = $filters['assigned_to_or_null'];
         }
         
         $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";

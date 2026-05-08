@@ -96,7 +96,7 @@ switch ($method) {
         $fileId = $fileModel->create($fileData);
         
         if ($fileId) {
-            logActivity('file_upload', "Uploaded file: {$uploadResult['original_name']}", $_POST['related_to_type'], $_POST['related_to_id'], $user['id']);
+            logActivity('file_upload', "Đã tải file: {$uploadResult['original_name']}", $_POST['related_to_type'], $_POST['related_to_id'], $user['id']);
             
             jsonSuccess([
                 'id' => $fileId,
@@ -155,7 +155,7 @@ switch ($method) {
         $result = $fileModel->delete($id);
         
         if ($result['success']) {
-            logActivity('file_deleted', "Deleted file: {$file['original_name']}", $file['related_to_type'], $file['related_to_id'], $user['id']);
+            logActivity('file_deleted', "Đã xóa file: {$file['original_name']}", $file['related_to_type'], $file['related_to_id'], $user['id']);
             jsonSuccess(null, 'File deleted successfully');
         } else {
             jsonError($result['message']);

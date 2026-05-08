@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/helpers.php';
+require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../models/User.php';
 
 // Get request method and action
@@ -214,6 +215,150 @@ switch ($action) {
         
         // Update password
         if ($userModel->update($user['id'], ['password' => $data['new_password']])) {
+            jsonSuccess(null, 'Password changed successfully');
+        } else {
+            jsonError('Failed to change password');
+        }
+        break;
+        
+    case 'profile':
+        if ($method !== 'GET') {
+            jsonError('Method not allowed', 405);
+        }
+        
+        $user = authenticate();
+        // Remove sensitive data
+        unset($user['password']);
+        jsonSuccess($user);
+        break;
+        
+    case 'update_profile':
+        if ($method !== 'POST') {
+            jsonError('Method not allowed', 405);
+        }
+        
+        $user = authenticate();
+        $updateData = [];
+        
+        // Handle text fields
+        if (isset($_POST['full_name'])) {
+            $updateData['full_name'] = sanitize($_POST['full_name']);
+        }
+        if (isset($_POST['email'])) {
+            $email = sanitize($_POST['email']);
+            // Check if email is unique (excluding current user)
+            $existing = $userModel->getByEmail($email);
+            if ($existing && $existing['id'] != $user['id']) {
+                jsonError('Email đã được sử dụng bởi tài khoản khác');
+            }
+            $updateData['email'] = $email;
+        }
+        if (isset($_POST['phone'])) {
+            $updateData['phone'] = sanitize($_POST['phone']);
+        }
+        if (isset($_POST['address'])) {
+            $updateData['address'] = sanitize($_POST['address']);
+        }
+        
+        // Handle avatar upload
+        $uploadedAvatar = null;
+        error_log("FILES data: " . json_encode($_FILES));
+        if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+            error_log("Avatar file received: " . $_FILES['avatar']['name'] . " (" . $_FILES['avatar']['size'] . " bytes)");
+            $uploadDir = __DIR__ . '/../../uploads/avatars/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            $fileExt = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
+            $fileName = 'avatar_' . $user['id'] . '_' . time() . '.' . $fileExt;
+            $uploadPath = $uploadDir . $fileName;
+            
+            // Validate file type
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($_FILES['avatar']['type'], $allowedTypes)) {
+                jsonError('Chỉ chấp nhận file ảnh (JPEG, PNG, GIF, WebP)');
+            }
+            
+            // Validate file size (max 2MB)
+            if ($_FILES['avatar']['size'] > 2 * 1024 * 1024) {
+                jsonError('Kích thước file không được vượt quá 2MB');
+            }
+            
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadPath)) {
+                error_log("Avatar uploaded successfully to: " . $uploadPath);
+                // Delete old avatar if exists
+                if (!empty($user['avatar'])) {
+                    $oldAvatarPath = __DIR__ . '/../..' . parse_url($user['avatar'], PHP_URL_PATH);
+                    if (file_exists($oldAvatarPath)) {
+                        unlink($oldAvatarPath);
+                    }
+                }
+                
+                $uploadedAvatar = '/customer_management/uploads/avatars/' . $fileName;
+                $updateData['avatar'] = $uploadedAvatar;
+            } else {
+                jsonError('Không thể upload ảnh');
+            }
+        }
+        
+        error_log("Update data: " . json_encode($updateData));
+        if (empty($updateData)) {
+            jsonError('Không có dữ liệu để cập nhật');
+        }
+        
+        try {
+            if ($userModel->update($user['id'], $updateData)) {
+                // Update session data - individual keys used by getCurrentUser()
+                if (isset($updateData['email'])) {
+                    $_SESSION['email'] = $updateData['email'];
+                }
+                if (isset($updateData['full_name'])) {
+                    $_SESSION['full_name'] = $updateData['full_name'];
+                }
+                if (isset($updateData['phone'])) {
+                    $_SESSION['phone'] = $updateData['phone'];
+                }
+                if (isset($updateData['address'])) {
+                    $_SESSION['address'] = $updateData['address'];
+                }
+                if (isset($updateData['avatar'])) {
+                    $_SESSION['avatar'] = $updateData['avatar'];
+                }
+                jsonSuccess(['avatar' => $uploadedAvatar], 'Cập nhật hồ sơ thành công');
+            } else {
+                jsonError('Cập nhật thất bại');
+            }
+        } catch (Exception $e) {
+            jsonError('Database error: ' . $e->getMessage());
+        }
+        break;
+        
+    case 'change_password':
+        if ($method !== 'PUT') {
+            jsonError('Method not allowed', 405);
+        }
+        
+        $user = authenticate();
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($data['current_password']) || empty($data['new_password'])) {
+            jsonError('Current password and new password are required');
+        }
+        
+        if (strlen($data['new_password']) < 6) {
+            jsonError('New password must be at least 6 characters');
+        }
+        
+        // Verify current password
+        $dbUser = $userModel->findById($user['id']);
+        if (!$dbUser || !password_verify($data['current_password'], $dbUser['password'])) {
+            jsonError('Current password is incorrect');
+        }
+        
+        // Update password
+        $hashedPassword = password_hash($data['new_password'], PASSWORD_DEFAULT);
+        if ($userModel->update($user['id'], ['password' => $hashedPassword])) {
             jsonSuccess(null, 'Password changed successfully');
         } else {
             jsonError('Failed to change password');

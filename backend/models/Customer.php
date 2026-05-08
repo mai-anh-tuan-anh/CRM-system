@@ -29,6 +29,12 @@ class Customer {
             $params[] = $filters['assigned_to'];
         }
         
+        // Filter for sales to see their assigned items OR unassigned items
+        if (!empty($filters['assigned_to_or_null'])) {
+            $where[] = "(c.assigned_to = ? OR c.assigned_to IS NULL)";
+            $params[] = $filters['assigned_to_or_null'];
+        }
+        
         if (!empty($filters['industry'])) {
             $where[] = "c.industry = ?";
             $params[] = $filters['industry'];
@@ -108,7 +114,7 @@ class Customer {
             $data['industry'] ?? null,
             $data['website'] ?? null,
             $data['source'] ?? null,
-            $data['status'] ?? 'prospect',
+            $data['status'] ?? 'active',
             $data['assigned_to'] ?? null,
             $data['notes'] ?? null,
             $data['created_by'] ?? null

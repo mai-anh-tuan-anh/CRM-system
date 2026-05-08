@@ -11,21 +11,29 @@ include 'components/sidebar.php';
 
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
-    
+
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-0">Quản lý khách hàng tiềm năng</h1>
-            <p class="text-muted mb-0">Theo dõi và chuyển đổi khách hàng tiềm năng thành khách hàng chính thức</p>
+            <p class="text-muted mb-0">Quản lý khách hàng tiềm năng và chuyển đổi thành khách hàng chính thức</p>
         </div>
-        <a href="leads.php?action=add" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i>Thêm mới
-        </a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-upload me-2"></i>Nhập
+            </button>
+            <button class="btn btn-outline-secondary" onclick="exportLeads()">
+                <i class="bi bi-download me-2"></i>Xuất
+            </button>
+            <a href="leads.php?action=add" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Thêm mới
+            </a>
+        </div>
     </div>
-    
+
     <!-- Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card bg-white border-left-primary">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -38,12 +46,12 @@ include 'components/sidebar.php';
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <div class="card bg-white border-left-warning">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <div class="text-muted small">KH tiềm năng mới</div>
+                            <div class="text-muted small">KH tiềm năng mới (tháng này)</div>
                             <h3 class="mb-0" id="newLeads">0</h3>
                         </div>
                         <i class="bi bi-star text-warning fs-2"></i>
@@ -51,40 +59,15 @@ include 'components/sidebar.php';
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-white border-left-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <div class="text-muted small">Đã chuyển đổi</div>
-                            <h3 class="mb-0" id="convertedLeads">0</h3>
-                        </div>
-                        <i class="bi bi-check-circle text-success fs-2"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-white border-left-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <div class="text-muted small">Tỷ lệ chuyển đổi</div>
-                            <h3 class="mb-0" id="conversionRate">0%</h3>
-                        </div>
-                        <i class="bi bi-graph-up text-info fs-2"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
-    
+
     <!-- Filters -->
     <div class="card mb-4">
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm khách hàng tiềm năng...">
+                    <input type="text" class="form-control" id="searchInput"
+                        placeholder="Tìm kiếm khách hàng tiềm năng...">
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" id="statusFilter">
@@ -109,7 +92,10 @@ include 'components/sidebar.php';
                         <option value="Website">Website</option>
                         <option value="Social Media">Mạng xã hội</option>
                         <option value="Referral">Giới thiệu</option>
+                        <option value="Email">Email</option>
+                        <option value="Phone">Điện thoại</option>
                         <option value="Event">Sự kiện</option>
+                        <option value="Other">Khác</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -125,7 +111,7 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <!-- Bảng khách hàng tiềm năng -->
     <div class="card">
         <div class="card-body p-0">
@@ -211,6 +197,20 @@ include 'components/sidebar.php';
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" class="form-control" id="address">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Thành phố</label>
+                            <input type="text" class="form-control" id="city">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Website</label>
+                            <input type="text" class="form-control" id="website">
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Trạng thái</label>
                             <select class="form-select" id="status">
@@ -263,8 +263,9 @@ include 'components/sidebar.php';
             <form id="convertForm">
                 <div class="modal-body">
                     <input type="hidden" id="convertLeadId">
-                    <p>Khách hàng tiềm năng này sẽ được chuyển đổi thành khách hàng. Bạn có thể tạo thỏa thuận kèm theo.</p>
-                    
+                    <p>Khách hàng tiềm năng này sẽ được chuyển đổi thành khách hàng. Bạn có thể tạo thỏa thuận kèm theo.
+                    </p>
+
                     <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="createDeal" checked>
@@ -273,7 +274,7 @@ include 'components/sidebar.php';
                             </label>
                         </div>
                     </div>
-                    
+
                     <div id="dealFields">
                         <div class="mb-3">
                             <label class="form-label">Tên thỏa thuận</label>
@@ -298,6 +299,39 @@ include 'components/sidebar.php';
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-check-lg me-2"></i>Chuyển đổi
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nhập khách hàng tiềm năng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn file Excel</label>
+                        <input type="file" class="form-control" name="file" accept=".xls,.xlsx" required>
+                        <div class="form-text">File phải có cột: full_name, email, phone, company_name, job_title,
+                            source, priority</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Người phụ trách</label>
+                        <select class="form-select" name="assigned_to" id="importAssignedTo">
+                            <option value="">Tôi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-link" onclick="downloadSampleExcel()">Tải file mẫu</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Nhập</button>
                 </div>
             </form>
         </div>
@@ -335,6 +369,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Forms
     document.getElementById("leadForm").addEventListener("submit", saveLead);
     document.getElementById("convertForm").addEventListener("submit", convertLead);
+    document.getElementById("importForm").addEventListener("submit", importLeads);
     
     // Create deal checkbox
     document.getElementById("createDeal").addEventListener("change", function() {
@@ -355,10 +390,8 @@ function loadStats() {
             if (data.success) {
                 const stats = data.data;
                 document.getElementById("totalLeads").textContent = stats.total || 0;
-                document.getElementById("convertedLeads").textContent = stats.converted || 0;
-                document.getElementById("conversionRate").textContent = (stats.conversion_rate || 0) + "%";
                 
-                // Count new leads
+                // Count new leads this month
                 const newCount = (stats.by_status || []).find(s => s.status === "new")?.count || 0;
                 document.getElementById("newLeads").textContent = newCount;
             }
@@ -397,7 +430,7 @@ function renderTable(leads) {
     const tbody = document.getElementById("leadsTable");
     
     if (leads.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Không có leads nào</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Không có KH tiềm năng nào</td></tr>`;
         return;
     }
     
@@ -412,23 +445,21 @@ function renderTable(leads) {
                 <small class="text-muted">${l.phone || ""}</small>
             </td>
             <td>${l.company_name || "-"}</td>
-            <td>${l.source || "-"}</td>
-            <td><span class="badge badge-${l.status}">${l.status}</span></td>
+            <td>${formatStatus(l.source) || "-"}</td>
+            <td><span class="badge badge-${l.status}">${formatStatus(l.status)}</span></td>
             <td>
                 <div class="progress" style="height: 6px;">
                     <div class="progress-bar" role="progressbar" style="width: ${l.score || 0}%"></div>
                 </div>
                 <small class="text-muted">${l.score || 0}/100</small>
             </td>
-            <td><span class="badge badge-${l.priority}">${l.priority}</span></td>
+            <td><span class="badge badge-${l.priority}">${formatStatus(l.priority)}</span></td>
             <td>${l.assigned_to_name || "-"}</td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    ${l.status !== "converted" ? `
                     <button class="btn btn-success" onclick="openConvertModal(${l.id})" data-bs-toggle="tooltip" title="Chuyển đổi">
                         <i class="bi bi-check-lg"></i>
                     </button>
-                    ` : ""}
                     <button class="btn btn-outline-secondary" onclick="editLead(${l.id})" data-bs-toggle="tooltip" title="Sửa">
                         <i class="bi bi-pencil"></i>
                     </button>
@@ -453,7 +484,7 @@ function renderPagination(pagination) {
 
 function loadFilterOptions() {
     // Load users
-    fetch(`${API_BASE_URL}/users.php`)
+    fetch(`${API_BASE_URL}/users.php?action=dropdown`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -490,6 +521,9 @@ function editLead(id) {
                 document.getElementById("phone").value = l.phone || "";
                 document.getElementById("companyName").value = l.company_name || "";
                 document.getElementById("source").value = l.source || "";
+                document.getElementById("address").value = l.address || "";
+                document.getElementById("city").value = l.city || "";
+                document.getElementById("website").value = l.website || "";
                 document.getElementById("status").value = l.status;
                 document.getElementById("priority").value = l.priority;
                 document.getElementById("score").value = l.score || 0;
@@ -513,6 +547,9 @@ function saveLead(e) {
         phone: document.getElementById("phone").value,
         company_name: document.getElementById("companyName").value,
         source: document.getElementById("source").value,
+        address: document.getElementById("address").value,
+        city: document.getElementById("city").value,
+        website: document.getElementById("website").value,
         status: document.getElementById("status").value,
         priority: document.getElementById("priority").value,
         score: document.getElementById("score").value,
@@ -608,6 +645,47 @@ function resetFilters() {
     document.getElementById("assignedFilter").value = "";
     currentPage = 1;
     loadLeads();
+}
+
+function exportLeads() {
+    window.location.href = API_BASE_URL + "/leads-export.php";
+}
+
+function importLeads(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    formData.append("type", "leads");
+    
+    fetch(API_BASE_URL + "/leads-import.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showAlert("Import thành công: " + result.data.imported + " khách hàng tiềm năng", "success");
+            bootstrap.Modal.getInstance(document.getElementById("importModal")).hide();
+            loadLeads();
+            loadStats();
+        } else {
+            showAlert(result.message, "danger");
+        }
+    })
+    .catch(error => {
+        console.error("Import error:", error);
+        showAlert("Lỗi khi import: " + error.message, "danger");
+    });
+}
+
+function downloadSampleExcel() {
+    const csv = "full_name,email,phone,company_name,job_title,source,priority\nNguyen Van A,nguyenvana@email.com,0901234567,Cong ty A,Sales Manager,Website,high\nTran Thi B,tranthib@email.com,0912345678,Cong ty B,Marketing Director,Facebook,medium";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "leads_sample.csv";
+    a.click();
 }
 ';
 

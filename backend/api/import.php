@@ -77,7 +77,7 @@ foreach ($importResult['data'] as $index => $row) {
     $data['assigned_to'] = $_POST['assigned_to'] ?? $user['id'];
     
     if ($type === 'customers') {
-        $data['status'] = $_POST['default_status'] ?? 'prospect';
+        $data['status'] = $_POST['default_status'] ?? 'active';
     } else {
         $data['status'] = 'new';
         $data['priority'] = $data['priority'] ?? 'medium';

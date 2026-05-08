@@ -11,7 +11,7 @@ include 'components/sidebar.php';
 
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
-    
+
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Tổng quan</h1>
@@ -21,7 +21,7 @@ include 'components/sidebar.php';
             </a>
         </div>
     </div>
-    
+
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <!-- Thẻ khách hàng -->
@@ -34,13 +34,13 @@ include 'components/sidebar.php';
                         </div>
                         <div class="stat-info">
                             <h3 id="customerCount">0</h3>
-                            <p>Khách hàng</p>
+                            <p>Khách hàng chính thức</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Thẻ KH tiềm năng -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card card-stats info h-100 py-2">
@@ -57,7 +57,7 @@ include 'components/sidebar.php';
                 </div>
             </div>
         </div>
-        
+
         <!-- Thẻ thỏa thuận -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card card-stats success h-100 py-2">
@@ -74,7 +74,7 @@ include 'components/sidebar.php';
                 </div>
             </div>
         </div>
-        
+
         <!-- Thẻ doanh thu -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card card-stats warning h-100 py-2">
@@ -92,7 +92,7 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <!-- Content Row -->
     <div class="row">
         <!-- Biểu đồ doanh thu -->
@@ -119,7 +119,7 @@ include 'components/sidebar.php';
                 </div>
             </div>
         </div>
-        
+
         <!-- Tổng quan quy trình -->
         <div class="col-lg-4 mb-4">
             <div class="card shadow mb-4">
@@ -133,13 +133,14 @@ include 'components/sidebar.php';
                         <canvas id="pipelineChart"></canvas>
                     </div>
                     <div class="mt-3 text-center">
-                        <small class="text-muted">Tổng giá trị quy trình: <strong id="pipelineValue">0 ₫</strong></small>
+                        <small class="text-muted">Tổng giá trị quy trình: <strong id="pipelineValue">0
+                                ₫</strong></small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Second Row -->
     <div class="row">
         <!-- Recent Activity -->
@@ -158,7 +159,7 @@ include 'components/sidebar.php';
                 </div>
             </div>
         </div>
-        
+
         <!-- Công việc sắp tới -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow mb-4">
@@ -176,7 +177,7 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <!-- Hàng thứ 3 - Tổng quan thỏa thuận -->
     <div class="row">
         <div class="col-12">
@@ -199,8 +200,9 @@ include 'components/sidebar.php';
 <?php
 $inlineJS = '
 // Load dashboard data
-function loadDashboardData() {
-    fetch(`${API_BASE_URL}/dashboard.php?action=overview`)
+function loadDashboardData(months = 12) {
+    const url = `${API_BASE_URL}/dashboard.php?action=overview&months=${months}`;
+    fetch(url)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -296,12 +298,12 @@ function renderPipelineChart(data) {
         lost: "Thất bại"
     };
     
-    const filtered = data.filter(item => item.stage !== "won" && item.stage !== "lost");
-    
+    const filtered = data.filter(item => item.name !== "won" && item.name !== "lost");
+
     new Chart(ctx, {
         type: "doughnut",
         data: {
-            labels: filtered.map(item => stageNames[item.stage] || item.stage),
+            labels: filtered.map(item => stageNames[item.name] || item.name),
             datasets: [{
                 data: filtered.map(item => item.count),
                 backgroundColor: ["#4e73df", "#36b9cc", "#f6c23e", "#e74a3b"]
@@ -340,18 +342,47 @@ function renderDealsByStage(data) {
         won: "success",
         lost: "secondary"
     };
-    
+
+    // Text colors for each background to ensure contrast
+    const textColors = {
+        prospect: "text-white",
+        qualification: "text-white",
+        proposal: "text-dark",      // Warning background needs dark text
+        negotiation: "text-white",
+        won: "text-white",
+        lost: "text-white"
+    };
+
     container.innerHTML = data.map(item => `
         <div class="col-md-2 col-6 mb-3">
-            <div class="card bg-${colors[item.stage] || "light"} text-white">
-                <div class="card-body text-center">
-                    <h3 class="mb-1">${item.count}</h3>
-                    <small>${stageNames[item.stage] || item.stage}</small>
-                    <div class="mt-2 fw-bold">${formatCurrency(item.total_value || 0)}</div>
+            <div class="card bg-${colors[item.name] || "light"} ${textColors[item.name] || "text-dark"} shadow-sm">
+                <div class="card-body text-center py-3">
+                    <h4 class="mb-1 fw-bold">${item.count}</h4>
+                    <small class="d-block mb-2">${stageNames[item.name] || item.name}</small>
+                    <div class="fw-bold" style="font-size: 0.9rem;">${formatCurrency(item.total_value || 0)}</div>
                 </div>
             </div>
         </div>
     `).join("");
+}
+
+// Helper function to render avatar
+function renderAvatar(avatar, name, size = \'md\', extraClass = \'\') {
+    const initials = (name || \'U\').charAt(0).toUpperCase();
+    const sizeStyles = {
+        sm: \'width:24px;height:24px;font-size:0.75rem;\',
+        md: \'width:32px;height:32px;font-size:0.875rem;\',
+        lg: \'width:40px;height:40px;font-size:1rem;\'
+    };
+    const style = sizeStyles[size] || sizeStyles.md;
+    const baseClass = `rounded-circle d-flex align-items-center justify-content-center overflow-hidden ${extraClass}`;
+
+    if (avatar) {
+        return `<div class="${baseClass}" style="${style}">
+            <img src="${avatar}" alt="${name}" style="width:100%;height:100%;object-fit:cover;">
+        </div>`;
+    }
+    return `<div class="${baseClass} bg-primary text-white" style="${style}">${initials}</div>`;
 }
 
 // Activity List
@@ -365,9 +396,7 @@ function renderActivityList(activities) {
     
     container.innerHTML = activities.map(activity => `
         <div class="activity-item">
-            <div class="activity-avatar">
-                ${activity.performed_by_name?.charAt(0).toUpperCase() || "U"}
-            </div>
+            ${renderAvatar(activity.performed_by_avatar, activity.performed_by_name, \'lg\', \'activity-avatar\')}
             <div class="activity-content">
                 <div class="activity-text">${activity.description}</div>
                 <div class="activity-time">
@@ -395,7 +424,7 @@ function renderUpcomingTasks(tasks) {
                 <input type="checkbox" class="form-check-input" data-task-id="${task.id}">
             </div>
             <div class="flex-grow-1 ms-3">
-                <div class="fw-bold ${isOverdue ? "text-danger" : ""}">${task.title}</div>
+                <div class="fw-bold ${isOverdue ? "text-danger" : ""}">${task.name || task.title}</div>
                 <small class="text-muted">
                     <i class="bi bi-${isOverdue ? "exclamation-circle text-danger" : "calendar"} me-1"></i>
                     ${formatDate(task.due_date)} ${isOverdue ? "(Quá hạn)" : ""}
@@ -433,6 +462,27 @@ function completeTask(taskId) {
         }
     });
 }
+
+// Event listeners for dropdown menus
+document.addEventListener("DOMContentLoaded", function() {
+    // Revenue chart period selector - use more specific selector
+    const revenueDropdown = document.querySelector(".card-header .dropdown-menu");
+    if (revenueDropdown) {
+        revenueDropdown.addEventListener("click", function(e) {
+            if (e.target.classList.contains("dropdown-item")) {
+                e.preventDefault();
+                const months = e.target.dataset.months;
+                const button = revenueDropdown.previousElementSibling;
+                
+                // Update button text
+                button.textContent = months + " tháng";
+                
+                // Reload dashboard with new period
+                loadDashboardData(months);
+            }
+        });
+    }
+});
 
 // Initial load
 loadDashboardData();

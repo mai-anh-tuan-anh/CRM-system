@@ -8,6 +8,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/helpers.php';
 require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../models/Deal.php';
+require_once __DIR__ . '/../models/Customer.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $dealModel = new Deal();
@@ -41,7 +42,7 @@ switch ($method) {
             $filters = [];
             
             if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to'] = $user['id'];
+                $filters['assigned_to_or_null'] = $user['id'];
             } elseif (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
@@ -67,9 +68,9 @@ switch ($method) {
                 $filters['max_value'] = $_GET['max_value'];
             }
             
-            // Non-admin can only see their own deals
+            // Non-admin can see their own assigned deals OR unassigned deals
             if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to'] = $user['id'];
+                $filters['assigned_to_or_null'] = $user['id'];
             } elseif (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
@@ -93,6 +94,16 @@ switch ($method) {
             jsonError('Customer is required');
         }
         
+        // Check if customer is active
+        $customerModel = new Customer();
+        $customer = $customerModel->getById($data['customer_id']);
+        if (!$customer) {
+            jsonError('Customer not found');
+        }
+        if ($customer['status'] === 'inactive') {
+            jsonError('Cannot create deal for inactive customer');
+        }
+        
         // Set created_by
         $data['created_by'] = $user['id'];
         
@@ -104,7 +115,7 @@ switch ($method) {
         $dealId = $dealModel->create($data);
         
         if ($dealId) {
-            logActivity('deal_created', "Created deal: {$data['title']}", 'deal', $dealId, $user['id']);
+            logActivity('deal_created', "Đã tạo thỏa thuận: {$data['title']}", 'deal', $dealId, $user['id']);
             
             // Notify assignee
             if (!empty($data['assigned_to']) && $data['assigned_to'] != $user['id']) {
@@ -178,7 +189,7 @@ switch ($method) {
         }
         
         if ($dealModel->update($dealId, $data)) {
-            logActivity('deal_updated', "Updated deal: {$deal['title']}", 'deal', $dealId, $user['id']);
+            logActivity('deal_updated', "Đã cập nhật thỏa thuận: {$deal['title']}", 'deal', $dealId, $user['id']);
             
             // Notify new assignee
             if ($newAssignedTo != $oldAssignedTo && $newAssignedTo != $user['id']) {
@@ -219,7 +230,7 @@ switch ($method) {
         $result = $dealModel->delete($id);
         
         if ($result['success']) {
-            logActivity('deal_deleted', "Deleted deal: {$deal['title']}", 'deal', $id, $user['id']);
+            logActivity('deal_deleted', "Đã xóa thỏa thuận: {$deal['title']}", 'deal', $id, $user['id']);
             jsonSuccess(null, 'Deal deleted successfully');
         } else {
             jsonError($result['message']);

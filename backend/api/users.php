@@ -17,6 +17,16 @@ $user = authenticate();
 
 switch ($method) {
     case 'GET':
+        // Dropdown list (for filters/assignments) - all authenticated users
+        if (isset($_GET['action']) && $_GET['action'] === 'dropdown') {
+            $role = $_GET['role'] ?? null;
+            $users = $userModel->getForDropdown($role);
+            jsonSuccess([
+                'data' => $users,
+                'pagination' => null
+            ]);
+        }
+
         // Check if getting single user or list
         if (isset($_GET['id'])) {
             // Get single user - admin, manager, or self only
@@ -66,7 +76,8 @@ switch ($method) {
         }
         
         // Check uniqueness
-        if ($userModel->getByUsername($data['username'])) {
+        $existingUser = $userModel->getByUsername($data['username']);
+        if ($existingUser) {
             jsonError('Username already exists');
         }
         if ($userModel->getByEmail($data['email'])) {
@@ -77,7 +88,7 @@ switch ($method) {
         $userId = $userModel->create($data);
         
         if ($userId) {
-            logActivity('user_created', "Created user: {$data['username']}", 'user', $userId, $user['id']);
+            logActivity('user_created', "Đã tạo người dùng: {$data['username']}", 'user', $userId, $user['id']);
             jsonSuccess(['id' => $userId], 'User created successfully');
         } else {
             jsonError('Failed to create user');
@@ -124,7 +135,7 @@ switch ($method) {
         }
         
         if ($userModel->update($userId, $data)) {
-            logActivity('user_updated', "Updated user: {$targetUser['username']}", 'user', $userId, $user['id']);
+            logActivity('user_updated', "Đã cập nhật người dùng: {$targetUser['username']}", 'user', $userId, $user['id']);
             jsonSuccess(null, 'User updated successfully');
         } else {
             jsonError('Failed to update user');
@@ -164,7 +175,7 @@ switch ($method) {
         $result = $userModel->delete($id);
         
         if ($result['success']) {
-            logActivity('user_deleted', "Deleted user: {$targetUser['username']}", 'user', $id, $user['id']);
+            logActivity('user_deleted', "Đã xóa người dùng: {$targetUser['username']}", 'user', $id, $user['id']);
             jsonSuccess(null, 'User deleted successfully');
         } else {
             jsonError($result['message']);

@@ -108,6 +108,21 @@ class User {
         $fields = [];
         $params = [];
         
+        // Check if address column exists, create if not
+        $hasAddressColumn = false;
+        try {
+            $stmt = $this->db->query("SHOW COLUMNS FROM users LIKE 'address'");
+            $hasAddressColumn = $stmt->fetch() !== false;
+            
+            // Auto-create address column if not exists
+            if (!$hasAddressColumn) {
+                $this->db->exec("ALTER TABLE users ADD COLUMN address VARCHAR(255) NULL AFTER phone");
+                $hasAddressColumn = true;
+            }
+        } catch (Exception $e) {
+            $hasAddressColumn = false;
+        }
+        
         if (isset($data['email'])) {
             $fields[] = "email = ?";
             $params[] = $data['email'];
@@ -119,6 +134,10 @@ class User {
         if (isset($data['phone'])) {
             $fields[] = "phone = ?";
             $params[] = $data['phone'];
+        }
+        if (isset($data['address']) && $hasAddressColumn) {
+            $fields[] = "address = ?";
+            $params[] = $data['address'];
         }
         if (isset($data['role'])) {
             $fields[] = "role = ?";

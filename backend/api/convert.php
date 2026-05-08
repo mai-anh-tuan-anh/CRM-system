@@ -39,21 +39,20 @@ if (!canAccessResource($lead['assigned_to'], $lead['created_by'])) {
     jsonError('Forbidden', 403);
 }
 
-// Check if already converted
-if ($lead['status'] === 'converted') {
-    jsonError('Lead is already converted');
-}
-
 // Prepare customer data
 $customerData = [
     'full_name' => $lead['full_name'],
     'email' => $lead['email'],
     'phone' => $lead['phone'],
     'company_name' => $lead['company_name'],
+    'address' => $lead['address'],
+    'city' => $lead['city'],
+    'website' => $lead['website'],
     'source' => $lead['source'],
+    'status' => 'active', // Default status is active for converted leads
     'assigned_to' => $lead['assigned_to'] ?? $user['id'],
     'created_by' => $user['id'],
-    'notes' => "Converted from lead {$lead['lead_code']}\n\n" . ($lead['notes'] ?? '')
+    'notes' => "Chuyển đổi từ lead {$lead['lead_code']}\n\n" . ($lead['notes'] ?? '')
 ];
 
 // Override with provided data if any
@@ -72,8 +71,8 @@ try {
         throw new Exception('Failed to create customer');
     }
     
-    // Convert lead
-    $leadModel->convertToCustomer($lead['id'], $customerId, $user['id']);
+    // Delete lead completely (instead of just marking as converted)
+    $leadModel->delete($lead['id']);
     
     // Create deal if value provided
     $dealId = null;
@@ -81,7 +80,6 @@ try {
         $dealData = [
             'title' => $data['deal_title'] ?? "Deal from {$lead['full_name']}",
             'customer_id' => $customerId,
-            'lead_id' => $lead['id'],
             'value' => $data['deal_value'],
             'stage' => $data['deal_stage'] ?? 'prospect',
             'assigned_to' => $customerData['assigned_to'],
@@ -94,14 +92,14 @@ try {
     $db->commit();
     
     // Log activity
-    logActivity('lead_converted', "Lead {$lead['full_name']} converted to customer", 'lead', $lead['id'], $user['id']);
-    logActivity('customer_created', "Customer created from lead conversion", 'customer', $customerId, $user['id']);
+    logActivity('lead_deleted', "Lead {$lead['full_name']} converted và đã xóa khỏi hệ thống", 'lead', $lead['id'], $user['id']);
+    logActivity('customer_created', "Tạo khách hàng từ lead conversion", 'customer', $customerId, $user['id']);
     
     // Create notification
     createNotification(
         $customerData['assigned_to'],
-        'Lead Converted',
-        "Lead {$lead['full_name']} has been converted to customer",
+        'Chuyển đổi thành công',
+        "Lead {$lead['full_name']} đã được chuyển đổi thành khách hàng và xóa khỏi danh sách leads",
         'success',
         'customer',
         $customerId
@@ -111,7 +109,7 @@ try {
         'lead_id' => $lead['id'],
         'customer_id' => $customerId,
         'deal_id' => $dealId
-    ], 'Lead converted successfully');
+    ], 'Chuyển đổi lead thành khách hàng thành công');
     
 } catch (Exception $e) {
     $db->rollBack();
