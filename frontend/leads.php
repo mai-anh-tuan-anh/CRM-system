@@ -38,7 +38,7 @@ include 'components/sidebar.php';
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <div class="text-muted small">Tổng KH tiềm năng</div>
+                            <div class="text-muted small">Tổng khách hàng tiềm năng</div>
                             <h3 class="mb-0" id="totalLeads">0</h3>
                         </div>
                         <i class="bi bi-bullseye text-primary fs-2"></i>
@@ -51,7 +51,7 @@ include 'components/sidebar.php';
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <div class="text-muted small">KH tiềm năng mới (tháng này)</div>
+                            <div class="text-muted small">Khách hàng tiềm năng mới</div>
                             <h3 class="mb-0" id="newLeads">0</h3>
                         </div>
                         <i class="bi bi-star text-warning fs-2"></i>
@@ -90,12 +90,10 @@ include 'components/sidebar.php';
                     <select class="form-select" id="sourceFilter">
                         <option value="">Tất cả nguồn</option>
                         <option value="Website">Website</option>
-                        <option value="Social Media">Mạng xã hội</option>
                         <option value="Referral">Giới thiệu</option>
-                        <option value="Email">Email</option>
-                        <option value="Phone">Điện thoại</option>
                         <option value="Event">Sự kiện</option>
-                        <option value="Other">Khác</option>
+                        <option value="Email">Email</option>
+                        <option value="Social Media">Mạng xã hội</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -179,6 +177,10 @@ include 'components/sidebar.php';
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" class="form-control" id="dob">
+                        </div>
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Công ty</label>
                             <input type="text" class="form-control" id="companyName">
                         </div>
@@ -187,12 +189,10 @@ include 'components/sidebar.php';
                             <select class="form-select" id="source">
                                 <option value="">Chọn nguồn</option>
                                 <option value="Website">Website</option>
-                                <option value="Social Media">Mạng xã hội</option>
                                 <option value="Referral">Giới thiệu</option>
-                                <option value="Email">Email</option>
-                                <option value="Phone">Điện thoại</option>
                                 <option value="Event">Sự kiện</option>
-                                <option value="Other">Khác</option>
+                                <option value="Email">Email</option>
+                                <option value="Social Media">Mạng xã hội</option>
                             </select>
                         </div>
                     </div>
@@ -519,6 +519,7 @@ function editLead(id) {
                 document.getElementById("jobTitle").value = l.job_title || "";
                 document.getElementById("email").value = l.email || "";
                 document.getElementById("phone").value = l.phone || "";
+                document.getElementById("dob").value = l.dob || "";
                 document.getElementById("companyName").value = l.company_name || "";
                 document.getElementById("source").value = l.source || "";
                 document.getElementById("address").value = l.address || "";
@@ -545,6 +546,7 @@ function saveLead(e) {
         job_title: document.getElementById("jobTitle").value,
         email: document.getElementById("email").value,
         phone: document.getElementById("phone").value,
+        dob: document.getElementById("dob").value,
         company_name: document.getElementById("companyName").value,
         source: document.getElementById("source").value,
         address: document.getElementById("address").value,

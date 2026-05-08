@@ -31,7 +31,8 @@ switch ($action) {
         break;
         
     case 'deals_summary':
-        jsonSuccess(getDealsSummary());
+        $year = $_GET['year'] ?? null;
+        jsonSuccess(getDealsSummary($year));
         break;
         
     case 'conversion':
@@ -44,7 +45,18 @@ switch ($action) {
         break;
         
     case 'sources':
-        jsonSuccess(getLeadSources());
+        $year = $_GET['year'] ?? null;
+        jsonSuccess(getLeadSources($year));
+        break;
+        
+    case 'win_rate_by_source':
+        $year = $_GET['year'] ?? null;
+        jsonSuccess(getWinRateBySource($year));
+        break;
+        
+    case 'customers_by_industry':
+        $year = $_GET['year'] ?? null;
+        jsonSuccess(getCustomersByIndustry($year));
         break;
         
     default:
@@ -130,8 +142,11 @@ function getRevenueByYear($startYear, $endYear) {
 /**
  * Get deals summary by stage
  */
-function getDealsSummary() {
+function getDealsSummary($year = null) {
     $db = getDB();
+    
+    $whereYear = $year ? "WHERE YEAR(COALESCE(actual_close_date, expected_close_date)) = ?" : "";
+    $params = $year ? [$year] : [];
     
     $sql = "
         SELECT 
@@ -140,23 +155,28 @@ function getDealsSummary() {
             SUM(value) as total_value,
             AVG(value) as avg_value
         FROM deals
+        {$whereYear}
         GROUP BY stage
         ORDER BY FIELD(stage, 'prospect', 'qualification', 'proposal', 'negotiation', 'won', 'lost')
     ";
     
-    $stmt = $db->query($sql);
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
     $byStage = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Totals
     $sql = "
         SELECT 
             COUNT(*) as total_deals,
+            SUM(CASE WHEN stage = 'won' THEN 1 ELSE 0 END) as won,
             SUM(CASE WHEN stage = 'won' THEN value ELSE 0 END) as total_won,
             SUM(CASE WHEN stage != 'won' AND stage != 'lost' THEN value ELSE 0 END) as total_pipeline,
             SUM(CASE WHEN stage = 'lost' THEN value ELSE 0 END) as total_lost
         FROM deals
+        {$whereYear}
     ";
-    $stmt = $db->query($sql);
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
     $totals = $stmt->fetch(PDO::FETCH_ASSOC);
     
     return ['by_stage' => $byStage, 'totals' => $totals];
@@ -238,34 +258,106 @@ function getSalesPerformance($year) {
 /**
  * Get lead sources breakdown
  */
-function getLeadSources() {
+function getLeadSources($year = null) {
     $db = getDB();
     
     // Leads by source
+    $whereYearLeads = $year ? "WHERE YEAR(created_at) = ?" : "";
+    $paramsLeads = $year ? [$year] : [];
+    
     $sql = "
         SELECT 
             source,
             COUNT(*) as count,
             SUM(CASE WHEN status = 'converted' THEN 1 ELSE 0 END) as converted
         FROM leads
+        {$whereYearLeads}
         GROUP BY source
         ORDER BY count DESC
     ";
-    $stmt = $db->query($sql);
+    $stmt = $year ? $db->prepare($sql) : $db->query($sql);
+    if ($year) $stmt->execute($paramsLeads);
     $leads = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Deals by source
+    $whereYear = $year ? "AND YEAR(COALESCE(actual_close_date, expected_close_date)) = ?" : "";
+    $params = $year ? [$year] : [];
+    
     $sql = "
         SELECT 
             source,
             COUNT(*) as count,
             SUM(CASE WHEN stage = 'won' THEN value ELSE 0 END) as won_value
         FROM deals
+        WHERE 1=1 {$whereYear}
         GROUP BY source
         ORDER BY won_value DESC
     ";
-    $stmt = $db->query($sql);
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
     $deals = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     return ['leads' => $leads, 'deals' => $deals];
+}
+
+/**
+ * Get win rate by source
+ */
+function getWinRateBySource($year = null) {
+    $db = getDB();
+    
+    $whereYear = $year ? "AND YEAR(COALESCE(actual_close_date, expected_close_date)) = ?" : "";
+    $params = $year ? [$year] : [];
+    
+    $sql = "
+        SELECT 
+            source,
+            COALESCE(SUM(CASE WHEN stage = 'won' THEN 1 ELSE 0 END), 0) as won_deals,
+            COALESCE(SUM(CASE WHEN stage = 'lost' THEN 1 ELSE 0 END), 0) as lost_deals,
+            COUNT(*) as total_deals,
+            COALESCE(
+                ROUND(
+                    SUM(CASE WHEN stage = 'won' THEN 1 ELSE 0 END) / 
+                    NULLIF(SUM(CASE WHEN stage = 'won' THEN 1 ELSE 0 END) + SUM(CASE WHEN stage = 'lost' THEN 1 ELSE 0 END), 0) 
+                    * 100, 1
+                ), 0
+            ) as win_rate
+        FROM deals
+        WHERE 1=1 {$whereYear}
+        GROUP BY source
+        ORDER BY win_rate DESC, source ASC
+    ";
+    
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    return ['year' => $year, 'data' => $data];
+}
+
+/**
+ * Get customers by industry
+ */
+function getCustomersByIndustry($year = null) {
+    $db = getDB();
+    
+    $whereYear = $year ? "WHERE YEAR(created_at) = ?" : "";
+    $params = $year ? [$year] : [];
+    
+    $sql = "
+        SELECT 
+            COALESCE(industry, 'Khác') as industry,
+            COUNT(*) as count,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_count,
+            SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive_count
+        FROM customers
+        {$whereYear}
+        GROUP BY industry
+        ORDER BY count DESC
+    ";
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    return ['year' => $year, 'data' => $data];
 }

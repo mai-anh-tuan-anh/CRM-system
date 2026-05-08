@@ -11,6 +11,20 @@ include 'components/sidebar.php';
 
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
+    
+    <!-- Fix stat card font sizes to prevent overflow -->
+    <style>
+        .card .card-body h3 {
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+        .card .card-body .fs-2 {
+            font-size: 1.5rem !important;
+        }
+        .card .card-body .text-muted.small {
+            font-size: 0.75rem;
+        }
+    </style>
 
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -42,9 +56,9 @@ include 'components/sidebar.php';
                     <div class="d-flex justify-content-between">
                         <div>
                             <div class="text-muted small">Tổng thỏa thuận</div>
-                            <h3 class="mb-0" id="totalDeals">0</h3>
+                            <h5 class="mb-0 fw-bold" id="totalDeals">0</h5>
                         </div>
-                        <i class="bi bi-briefcase text-primary fs-2"></i>
+                        <i class="bi bi-briefcase text-primary" style="font-size: 1.5rem;"></i>
                     </div>
                 </div>
             </div>
@@ -55,9 +69,9 @@ include 'components/sidebar.php';
                     <div class="d-flex justify-content-between">
                         <div>
                             <div class="text-muted small">Giá trị quy trình</div>
-                            <h3 class="mb-0" id="pipelineValue">0 ₫</h3>
+                            <h5 class="mb-0 fw-bold" id="pipelineValue">0 ₫</h5>
                         </div>
-                        <i class="bi bi-graph-up text-success fs-2"></i>
+                        <i class="bi bi-graph-up text-success" style="font-size: 1.5rem;"></i>
                     </div>
                 </div>
             </div>
@@ -68,9 +82,9 @@ include 'components/sidebar.php';
                     <div class="d-flex justify-content-between">
                         <div>
                             <div class="text-muted small">Tỷ lệ thắng</div>
-                            <h3 class="mb-0" id="winRate">0%</h3>
+                            <h5 class="mb-0 fw-bold" id="winRate">0%</h5>
                         </div>
-                        <i class="bi bi-trophy text-info fs-2"></i>
+                        <i class="bi bi-trophy text-info" style="font-size: 1.5rem;"></i>
                     </div>
                 </div>
             </div>
@@ -81,9 +95,9 @@ include 'components/sidebar.php';
                     <div class="d-flex justify-content-between">
                         <div>
                             <div class="text-muted small">Giá trị TB</div>
-                            <h3 class="mb-0" id="avgDealSize">0 ₫</h3>
+                            <h5 class="mb-0 fw-bold" id="avgDealSize">0 ₫</h5>
                         </div>
-                        <i class="bi bi-currency-dollar text-warning fs-2"></i>
+                        <i class="bi bi-currency-dollar text-warning" style="font-size: 1.5rem;"></i>
                     </div>
                 </div>
             </div>
@@ -224,8 +238,9 @@ include 'components/sidebar.php';
                                 <option value="">Chọn nguồn</option>
                                 <option value="Website">Website</option>
                                 <option value="Referral">Giới thiệu</option>
-                                <option value="Cold Call">Gọi lạnh</option>
                                 <option value="Event">Sự kiện</option>
+                                <option value="Email">Email</option>
+                                <option value="Social Media">Mạng xã hội</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">

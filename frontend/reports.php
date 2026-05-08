@@ -20,9 +20,13 @@ include 'components/sidebar.php';
         </div>
         <div class="d-flex gap-2">
             <select class="form-select" id="yearFilter" style="width: 120px;">
-                <option value="2024">2024</option>
-                <option value="2025" selected>2025</option>
-                <option value="2026">2026</option>
+                <?php
+                $currentYear = date('Y');
+                for ($year = 2024; $year <= 2027; $year++) {
+                    $selected = ($year == $currentYear) ? 'selected' : '';
+                    echo "<option value=\"$year\" $selected>$year</option>";
+                }
+                ?>
             </select>
             <button class="btn btn-success" onclick="exportToExcel()">
                 <i class="bi bi-file-earmark-excel me-2"></i>Excel
@@ -98,13 +102,31 @@ include 'components/sidebar.php';
 
     <div class="row">
         <!-- Deals by Stage -->
-        <div class="col-md-6 mb-4">
+        <div class="col-12 mb-4">
             <div class="card h-100">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Thỏa thuận theo giai đoạn</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="dealsByStageChart"></canvas>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <canvas id="dealsByStageChart"></canvas>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="table-responsive">
+                                <table class="table table-sm" id="dealsByStageTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Giai đoạn</th>
+                                            <th>Số lượng</th>
+                                            <th>Tổng giá trị</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -161,6 +183,74 @@ include 'components/sidebar.php';
             </div>
         </div>
     </div>
+
+    <!-- Win Rate by Source -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Tỷ lệ thắng theo nguồn</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5" style="height: 300px; position: relative;">
+                            <canvas id="winRateBySourceChart"></canvas>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="table-responsive">
+                                <table class="table table-sm" id="winRateBySourceTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nguồn</th>
+                                            <th>Tổng</th>
+                                            <th>Thắng</th>
+                                            <th>Thua</th>
+                                            <th>Tỷ lệ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customers by Industry -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-buildings me-2"></i>Khách hàng theo ngành nghề</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5" style="height: 300px; position: relative;">
+                            <canvas id="customersByIndustryChart"></canvas>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="table-responsive">
+                                <table class="table table-sm" id="customersByIndustryTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Ngành nghề</th>
+                                            <th>Số lượng</th>
+                                            <th>Hoạt động</th>
+                                            <th>Không hoạt động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Export Modal -->
@@ -230,25 +320,31 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function loadReports() {
-    const year = document.getElementById("yearFilter")?.value || 2025;
+    const year = document.getElementById("yearFilter")?.value || new Date().getFullYear();
     
     // Load all report data
     Promise.all([
         fetch(`${API_BASE_URL}/reports.php?action=revenue&year=${year}`).then(r => r.json()),
-        fetch(`${API_BASE_URL}/reports.php?action=deals_summary`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/reports.php?action=deals_summary&year=${year}`).then(r => r.json()),
         fetch(`${API_BASE_URL}/reports.php?action=performance&year=${year}`).then(r => r.json()),
-        fetch(`${API_BASE_URL}/reports.php?action=sources`).then(r => r.json())
-    ]).then(([revenue, deals, performance, sources]) => {
+        fetch(`${API_BASE_URL}/reports.php?action=sources&year=${year}`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/reports.php?action=win_rate_by_source&year=${year}`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/reports.php?action=customers_by_industry&year=${year}`).then(r => r.json())
+    ]).then(([revenue, deals, performance, sources, winRate, customersByIndustry]) => {
         if (revenue.success) reportData.revenue = revenue.data;
         if (deals.success) reportData.deals = deals.data;
         if (performance.success) reportData.performance = performance.data;
         if (sources.success) reportData.sources = sources.data;
+        if (winRate.success) reportData.winRate = winRate.data;
+        if (customersByIndustry.success) reportData.customersByIndustry = customersByIndustry.data;
 
         renderSummary();
         renderRevenueChart();
         renderDealsByStageChart();
         renderPerformanceTable();
         renderLeadSources();
+        renderWinRateBySource();
+        renderCustomersByIndustry();
     });
 }
 
@@ -359,6 +455,20 @@ function renderDealsByStageChart() {
             }
         }
     });
+    
+    // Table
+    const tbody = document.querySelector("#dealsByStageTable tbody");
+    if (tbody && reportData.deals.by_stage) {
+        tbody.innerHTML = reportData.deals.by_stage.map(d => {
+            return `
+                <tr>
+                    <td>${stageNames[d.stage] || d.stage}</td>
+                    <td>${d.count}</td>
+                    <td>${formatCurrency(d.total_value)}</td>
+                </tr>
+            `;
+        }).join("");
+    }
 }
 
 function renderPerformanceTable() {
@@ -405,6 +515,7 @@ function renderLeadSources() {
     if (!reportData.sources) return;
     
     const sourceNames = {
+        // Keys
         website: "Website",
         referral: "Giới thiệu",
         social_media: "Mạng xã hội",
@@ -412,7 +523,16 @@ function renderLeadSources() {
         event: "Sự kiện",
         phone: "Điện thoại",
         email: "Email",
-        other: "Khác"
+        other: "Khác",
+        // English names from API
+        "Social Media": "Mạng xã hội",
+        "Referral": "Giới thiệu",
+        "Event": "Sự kiện",
+        "Email": "Email",
+        "Website": "Website",
+        "Cold Call": "Gọi lạnh",
+        "Phone": "Điện thoại",
+        "Other": "Khác"
     };
     
     // Chart
@@ -455,9 +575,142 @@ function renderLeadSources() {
     }
 }
 
+function renderWinRateBySource() {
+    if (!reportData.winRate) return;
+    
+    const data = reportData.winRate.data;
+    const sourceNames = {
+        website: "Website",
+        referral: "Giới thiệu",
+        social_media: "Mạng xã hội",
+        cold_call: "Gọi lạnh",
+        event: "Sự kiện",
+        phone: "Điện thoại",
+        email: "Email",
+        other: "Khác",
+        "Social Media": "Mạng xã hội",
+        "Referral": "Giới thiệu",
+        "Event": "Sự kiện",
+        "Email": "Email",
+        "Website": "Website",
+        "Cold Call": "Gọi lạnh",
+        "Phone": "Điện thoại",
+        "Other": "Khác"
+    };
+    
+    const ctx = document.getElementById("winRateBySourceChart");
+    if (ctx && data) {
+        if (chartInstances.winRate) {
+            chartInstances.winRate.destroy();
+        }
+        
+        chartInstances.winRate = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: data.map(d => sourceNames[d.source] || d.source),
+                datasets: [{
+                    label: "Tỷ lệ thắng (%)",
+                    data: data.map(d => d.win_rate),
+                    backgroundColor: "#4e73df"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 2,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
+    
+    const tbody = document.querySelector("#winRateBySourceTable tbody");
+    if (tbody && data) {
+        tbody.innerHTML = data.map(d => {
+            return `
+                <tr>
+                    <td>${sourceNames[d.source] || d.source}</td>
+                    <td>${d.total_deals}</td>
+                    <td>${d.won_deals}</td>
+                    <td>${d.lost_deals}</td>
+                    <td>${d.win_rate}%</td>
+                </tr>
+            `;
+        }).join("");
+    }
+}
+
+function renderCustomersByIndustry() {
+    if (!reportData.customersByIndustry) return;
+    
+    const data = reportData.customersByIndustry.data;
+    
+    const industryNames = {
+        "Healthcare": "Y tế",
+        "Technology": "Công nghệ",
+        "Retail": "Bán lẻ",
+        "Manufacturing": "Sản xuất",
+        "Finance": "Tài chính",
+        "Education": "Giáo dục",
+        "Real Estate": "Bất động sản",
+        "Consulting": "Tư vấn",
+        "Other": "Khác",
+        "Khác": "Khác"
+    };
+    
+    const colors = ["#4e73df", "#1cc88a", "#36b9cc", "#f6c23e", "#e74a3b", "#6f42c1", "#fd7e14", "#858796"];
+    
+    const ctx = document.getElementById("customersByIndustryChart");
+    if (ctx && data) {
+        if (chartInstances.industry) {
+            chartInstances.industry.destroy();
+        }
+        
+        chartInstances.industry = new Chart(ctx, {
+            type: "pie",
+            data: {
+                labels: data.map(d => industryNames[d.industry] || d.industry),
+                datasets: [{
+                    data: data.map(d => d.count),
+                    backgroundColor: colors.slice(0, data.length)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1,
+                plugins: {
+                    legend: { position: "right" }
+                }
+            }
+        });
+    }
+    
+    const tbody = document.querySelector("#customersByIndustryTable tbody");
+    if (tbody && data) {
+        tbody.innerHTML = data.map(d => {
+            return `
+                <tr>
+                    <td>${industryNames[d.industry] || d.industry}</td>
+                    <td>${d.count}</td>
+                    <td>${d.active_count}</td>
+                    <td>${d.inactive_count}</td>
+                </tr>
+            `;
+        }).join("");
+    }
+}
+
 function switchChartType(type) {
     currentChartType = type;
-    const year = document.getElementById("yearFilter")?.value || 2025;
+    const year = document.getElementById("yearFilter")?.value || new Date().getFullYear();
     
     if (type === "yearly") {
         fetch(`${API_BASE_URL}/reports.php?action=revenue_yearly&start_year=2020&end_year=${year}`)
@@ -527,7 +780,7 @@ function exportToExcel() {
 }
 
 function confirmExport() {
-    const year = document.getElementById("yearFilter")?.value || 2025;
+    const year = document.getElementById("yearFilter")?.value || new Date().getFullYear();
     
     // Create CSV content
     let csv = "\\uFEFF"; // BOM for UTF-8

@@ -12,6 +12,18 @@ include 'components/sidebar.php';
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
 
+    <!-- CSS for overdue status badge -->
+    <style>
+    .badge-danger {
+        background-color: #f8d7da !important;
+        color: #721c24 !important;
+        font-weight: 700 !important;
+        padding: 0.4em 0.8em !important;
+        border-radius: 4px !important;
+        border: 1px solid #f5c6cb !important;
+    }
+    </style>
+
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -47,14 +59,14 @@ include 'components/sidebar.php';
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-white border-left-primary">
+            <div class="card bg-white border-left-danger">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <div class="text-muted small">Đang làm</div>
-                            <h3 class="mb-0" id="inProgressCount">0</h3>
+                            <div class="text-muted small">Quá hạn</div>
+                            <h3 class="mb-0" id="overdueCount">0</h3>
                         </div>
-                        <i class="bi bi-arrow-repeat text-primary fs-2"></i>
+                        <i class="bi bi-exclamation-triangle text-danger fs-2"></i>
                     </div>
                 </div>
             </div>
@@ -68,19 +80,6 @@ include 'components/sidebar.php';
                             <h3 class="mb-0" id="completedCount">0</h3>
                         </div>
                         <i class="bi bi-check-circle text-success fs-2"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-white border-left-danger">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <div class="text-muted small">Quá hạn</div>
-                            <h3 class="mb-0" id="overdueCount">0</h3>
-                        </div>
-                        <i class="bi bi-exclamation-triangle text-danger fs-2"></i>
                     </div>
                 </div>
             </div>
@@ -117,7 +116,6 @@ include 'components/sidebar.php';
                     <select class="form-select" id="statusFilter">
                         <option value="">Tất cả trạng thái</option>
                         <option value="pending">Chờ xử lý</option>
-                        <option value="in_progress">Đang thực hiện</option>
                         <option value="completed">Hoàn thành</option>
                     </select>
                 </div>
@@ -360,12 +358,25 @@ function loadStats() {
     fetch(`${API_BASE_URL}/dashboard.php?action=tasks-summary`)
         .then(response => response.json())
         .then(data => {
+            console.log("Tasks stats:", data);
             if (data.success) {
                 const stats = data.data;
-                document.getElementById("pendingCount").textContent = stats.pending || 0;
-                document.getElementById("inProgressCount").textContent = stats.in_progress || 0;
-                document.getElementById("completedCount").textContent = stats.completed || 0;
-                document.getElementById("overdueCount").textContent = stats.overdue || 0;
+                // Parse by_status array
+                let pending = 0;
+                let completed = 0;
+                let overdue = stats.overdue || 0;
+                if (stats.by_status) {
+                    for (let i = 0; i < stats.by_status.length; i++) {
+                        let item = stats.by_status[i];
+                        if (item.status === "pending") pending = item.count;
+                        if (item.status === "completed") completed = item.count;
+                    }
+                }
+                // Task quá hạn cũng là pending, nên pending = pending - overdue
+                pending = Math.max(0, pending - overdue);
+                document.getElementById("pendingCount").textContent = pending;
+                document.getElementById("completedCount").textContent = completed;
+                document.getElementById("overdueCount").textContent = overdue;
             }
         });
 }
@@ -428,6 +439,15 @@ function renderTable(tasks) {
             task: "check2-square"
         };
         
+        let badgeClass, statusText;
+        if (isOverdue) {
+            badgeClass = "badge-danger";
+            statusText = "Quá hạn";
+        } else {
+            badgeClass = getStatusBadgeClass(t.status);
+            statusText = formatStatus(t.status);
+        }
+        
         return `
         <tr class="${isOverdue ? "table-danger" : ""}">
             <td>
@@ -451,7 +471,7 @@ function renderTable(tasks) {
                 ` : "-"}
             </td>
             <td>${t.assigned_to_name || "-"}</td>
-            <td><span class="badge badge-${t.status}">${formatStatus(t.status)}</span></td>
+            <td><span class="badge ${badgeClass}">${statusText}</span></td>
             <td>
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-outline-secondary" onclick="editTask(${t.id})" data-bs-toggle="tooltip" title="Sửa">

@@ -169,6 +169,16 @@ switch ($action) {
         }
         
         $user = authenticate();
+        
+        // Refresh user data from database to ensure avatar sync
+        $dbUser = $userModel->getById($user['id']);
+        if ($dbUser) {
+            $_SESSION['avatar'] = $dbUser['avatar'];
+            $_SESSION['full_name'] = $dbUser['full_name'];
+            $_SESSION['email'] = $dbUser['email'];
+            $user = getCurrentUser();
+        }
+        
         jsonSuccess($user);
         break;
         
@@ -185,6 +195,14 @@ switch ($action) {
                 $_SESSION = [];
                 session_destroy();
                 jsonSuccess(['authenticated' => false]);
+            }
+            
+            // Refresh user data from database to ensure avatar sync
+            $dbUser = $userModel->getById($_SESSION['user_id']);
+            if ($dbUser) {
+                $_SESSION['avatar'] = $dbUser['avatar'];
+                $_SESSION['full_name'] = $dbUser['full_name'];
+                $_SESSION['email'] = $dbUser['email'];
             }
             
             jsonSuccess([

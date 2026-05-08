@@ -97,9 +97,9 @@ class Customer {
         $customerCode = generateCode('CUS', 'customers', 'customer_code');
         
         $stmt = $this->db->prepare("
-            INSERT INTO customers (customer_code, full_name, email, phone, company_name, address, 
+            INSERT INTO customers (customer_code, full_name, email, phone, dob, company_name, address, 
                 city, country, industry, website, source, status, assigned_to, notes, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $stmt->execute([
@@ -107,6 +107,7 @@ class Customer {
             $data['full_name'],
             $data['email'] ?? null,
             $data['phone'] ?? null,
+            $data['dob'] ?? null,
             $data['company_name'] ?? null,
             $data['address'] ?? null,
             $data['city'] ?? null,
@@ -130,7 +131,7 @@ class Customer {
         $fields = [];
         $params = [];
         
-        $allowedFields = ['full_name', 'email', 'phone', 'company_name', 'address', 
+        $allowedFields = ['full_name', 'email', 'phone', 'dob', 'company_name', 'address', 
                          'city', 'country', 'industry', 'website', 'source', 
                          'status', 'assigned_to', 'notes'];
         

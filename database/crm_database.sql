@@ -33,6 +33,7 @@ CREATE TABLE customers (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100),
     phone VARCHAR(20),
+    dob DATE,
     company_name VARCHAR(100),
     address TEXT,
     city VARCHAR(50),
@@ -57,6 +58,7 @@ CREATE TABLE leads (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100),
     phone VARCHAR(20),
+    dob DATE,
     company_name VARCHAR(100),
     job_title VARCHAR(50),
     address TEXT,
@@ -352,37 +354,37 @@ INSERT INTO products (product_code, name, description, price, cost, category, is
 ('PROD-005', 'Training Program', 'Comprehensive training program for teams', 15000000, 8000000, 'Training', 1, 1);
 
 -- Insert sample customers
-INSERT INTO customers (customer_code, full_name, email, phone, company_name, address, city, industry, source, status, assigned_to, notes, created_by) VALUES
-('CUS-2024-001', 'Nguyễn Văn A', 'nguyenvana@email.com', '0901234567', 'Công ty TNHH A', '123 Lê Lợi, Q1', 'TP.HCM', 'Technology', 'Website', 'active', 2, 'Key customer from website', 1),
-('CUS-2024-002', 'Trần Thị B', 'tranthib@email.com', '0912345678', 'Công ty CP B', '456 Nguyễn Huệ, Q1', 'TP.HCM', 'Finance', 'Referral', 'active', 2, 'Referred by existing customer', 1),
-('CUS-2024-003', 'Lê Văn C', 'levanc@email.com', '0923456789', 'Công ty TNHH C', '789 Đồng Khởi, Q1', 'TP.HCM', 'Manufacturing', 'Social Media', 'active', 2, 'Found us on Facebook', 1),
-('CUS-2024-004', 'Phạm Thị D', 'phamthid@email.com', '0934567890', 'Công ty CP D', '321 Hai Bà Trưng, Q3', 'TP.HCM', 'Retail', 'Email', 'active', 3, 'Responded to email campaign', 2),
-('CUS-2024-005', 'Hoàng Văn E', 'hoangvane@email.com', '0945678901', 'Công ty TNHH E', '654 Cách Mạng Tháng 8, Q3', 'TP.HCM', 'Healthcare', 'Phone', 'active', 2, 'Called for inquiry', 1);
+INSERT INTO customers (customer_code, full_name, email, phone, dob, company_name, address, city, industry, source, status, assigned_to, notes, created_by) VALUES
+('CUS-2024-001', 'Nguyễn Văn A', 'nguyenvana@email.com', '0901234567', '1985-03-15', 'Công ty TNHH A', '123 Lê Lợi, Q1', 'TP.HCM', 'Technology', 'Website', 'active', 2, 'Key customer from website', 1),
+('CUS-2024-002', 'Trần Thị B', 'tranthib@email.com', '0912345678', '1990-07-20', 'Công ty CP B', '456 Nguyễn Huệ, Q1', 'TP.HCM', 'Finance', 'Referral', 'active', 2, 'Referred by existing customer', 1),
+('CUS-2024-003', 'Lê Văn C', 'levanc@email.com', '0923456789', '1982-11-10', 'Công ty TNHH C', '789 Đồng Khởi, Q1', 'TP.HCM', 'Manufacturing', 'Social Media', 'active', 2, 'Found us on Facebook', 1),
+('CUS-2024-004', 'Phạm Thị D', 'phamthid@email.com', '0934567890', '1988-05-25', 'Công ty CP D', '321 Hai Bà Trưng, Q3', 'TP.HCM', 'Retail', 'Email', 'active', 3, 'Responded to email campaign', 2),
+('CUS-2024-005', 'Hoàng Văn E', 'hoangvane@email.com', '0945678901', '1992-12-08', 'Công ty TNHH E', '654 Cách Mạng Tháng 8, Q3', 'TP.HCM', 'Healthcare', 'Phone', 'active', 2, 'Called for inquiry', 1);
 
 -- Insert sample leads
-INSERT INTO leads (lead_code, full_name, email, phone, company_name, job_title, address, city, website, source, status, priority, score, assigned_to, notes, created_by) VALUES
-('LEAD-2024-001', 'Vũ Thị F', 'vuthif@email.com', '0956789012', 'Công ty F', 'Marketing Manager', NULL, NULL, NULL, 'Website', 'new', 'high', 75, 2, 'Downloaded whitepaper', 1),
-('LEAD-2024-002', 'Đặng Văn G', 'dangvang@email.com', '0967890123', 'Công ty G', 'IT Director', NULL, 'TP.HCM', 'congtyg.com', 'Referral', 'contacted', 'high', 85, 2, 'Referred by Nguyễn Văn A', 1),
-('LEAD-2024-003', 'Bùi Thị H', 'buithih@email.com', '0978901234', 'Công ty H', 'CEO', '123 Lê Lợi, Q1', 'TP.HCM', 'congtyh.vn', 'Event', 'qualified', 'medium', 90, 3, 'Met at Tech Conference 2024', 2),
-('LEAD-2024-004', 'Lý Văn I', 'lyvani@email.com', '0989012345', 'Công ty I', 'Sales Manager', NULL, 'Hà Nội', NULL, 'Social Media', 'contacted', 'low', 60, 2, 'LinkedIn connection', 1),
-('LEAD-2024-005', 'Ngô Thị K', 'ngothik@email.com', '0990123456', 'Công ty K', 'Operations Manager', '456 Nguyễn Huệ, Q1', 'TP.HCM', NULL, 'Email', 'new', 'medium', 50, 2, 'Email subscriber', 1);
+INSERT INTO leads (lead_code, full_name, email, phone, dob, company_name, job_title, address, city, website, source, status, priority, score, assigned_to, notes, created_by) VALUES
+('LEAD-2024-001', 'Vũ Thị F', 'vuthif@email.com', '0956789012', '1987-09-12', 'Công ty F', 'Marketing Manager', NULL, NULL, NULL, 'Website', 'new', 'high', 75, 2, 'Downloaded whitepaper', 1),
+('LEAD-2024-002', 'Đặng Văn G', 'dangvang@email.com', '0967890123', '1983-04-18', 'Công ty G', 'IT Director', NULL, 'TP.HCM', 'congtyg.com', 'Referral', 'contacted', 'high', 85, 2, 'Referred by Nguyễn Văn A', 1),
+('LEAD-2024-003', 'Bùi Thị H', 'buithih@email.com', '0978901234', '1991-06-30', 'Công ty H', 'CEO', '123 Lê Lợi, Q1', 'TP.HCM', 'congtyh.vn', 'Event', 'qualified', 'medium', 90, 3, 'Met at Tech Conference 2024', 2),
+('LEAD-2024-004', 'Lý Văn I', 'lyvani@email.com', '0989012345', '1989-02-14', 'Công ty I', 'Sales Manager', NULL, 'Hà Nội', NULL, 'Social Media', 'contacted', 'low', 60, 2, 'LinkedIn connection', 1),
+('LEAD-2024-005', 'Ngô Thị K', 'ngothik@email.com', '0990123456', '1993-08-22', 'Công ty K', 'Operations Manager', '456 Nguyễn Huệ, Q1', 'TP.HCM', NULL, 'Email', 'new', 'medium', 50, 2, 'Email subscriber', 1);
 
 --- Insert sample deals
 INSERT INTO deals (deal_code, title, description, customer_id, value, currency, stage, probability, expected_close_date, actual_close_date, assigned_to, source, notes, created_by) VALUES
-('DEAL-2024-001', 'Giấy phép phần mềm doanh nghiệp', 'Gói phần mềm doanh nghiệp đầy đủ', 1, 500000000, 'VND', 'negotiation', 80, '2025-12-31', NULL, 2, 'Website', 'Thỏa thuận giá trị cao đang thương lượng', 1),
-('DEAL-2024-002', 'Hợp đồng bảo trì hàng năm', 'Bảo trì và hỗ trợ hàng năm', 2, 100000000, 'VND', 'proposal', 60, '2025-11-30', NULL, 2, 'Referral', 'Khách hàng cũ gia hạn', 1),
-('DEAL-2024-003', 'Dự án tư vấn', 'Tư vấn 3 tháng', 3, 75000000, 'VND', 'qualification', 40, '2025-12-15', NULL, 3, 'Social Media', 'Cần đánh giá kỹ thuật', 2),
-('DEAL-2024-004', 'Gói đào tạo', 'Đào tạo đội ngũ 20 người', 4, 300000000, 'VND', 'won', 100, '2025-10-15', '2026-05-02', 2, 'Email', 'Đã đóng thành công', 2),
-('DEAL-2024-005', 'Triển khai sản phẩm', 'Triển khai và cài đặt', 5, 150000000, 'VND', 'prospect', 20, '2025-06-30', NULL, 2, 'Phone', 'Thảo luận ban đầu', 1),
-('DEAL-2024-006', 'Gói nâng cấp', 'Nâng cấp và chuyển đổi hệ thống', 1, 200000000, 'VND', 'negotiation', 70, '2025-12-20', NULL, 2, 'Website', 'Bán thêm cho khách hàng cũ', 1);
+('DEAL-2024-001', 'Giấy phép phần mềm doanh nghiệp', 'Gói phần mềm doanh nghiệp đầy đủ', 1, 500000000, 'VND', 'negotiation', 80, '2026-12-31', NULL, 2, 'Website', 'Thỏa thuận giá trị cao đang thương lượng', 1),
+('DEAL-2024-002', 'Hợp đồng bảo trì hàng năm', 'Bảo trì và hỗ trợ hàng năm', 2, 100000000, 'VND', 'proposal', 60, '2026-11-30', NULL, 2, 'Referral', 'Khách hàng cũ gia hạn', 1),
+('DEAL-2024-003', 'Dự án tư vấn', 'Tư vấn 3 tháng', 3, 75000000, 'VND', 'qualification', 40, '2026-12-15', NULL, 3, 'Social Media', 'Cần đánh giá kỹ thuật', 2),
+('DEAL-2024-004', 'Gói đào tạo', 'Đào tạo đội ngũ 20 người', 4, 300000000, 'VND', 'prospect', 100, '2026-10-15', '2026-05-02', 2, 'Email', 'Đã đóng thành công', 2),
+('DEAL-2024-005', 'Triển khai sản phẩm', 'Triển khai và cài đặt', 5, 150000000, 'VND', 'prospect', 20, '2026-06-30', NULL, 2, 'Phone', 'Thảo luận ban đầu', 1),
+('DEAL-2024-006', 'Gói nâng cấp', 'Nâng cấp và chuyển đổi hệ thống', 1, 200000000, 'VND', 'negotiation', 70, '2026-12-20', NULL, 2, 'Website', 'Bán thêm cho khách hàng cũ', 1);
 
 -- Insert sample tasks
 INSERT INTO tasks (title, description, type, status, priority, related_to_type, related_to_id, assigned_to, due_date, created_by) VALUES
-('Theo dõi với Nguyễn Văn A', 'Gọi điện thảo luận điều khoản gia hạn', 'call', 'pending', 'high', 'customer', 1, 2, '2024-11-25 10:00:00', 1),
-('Gửi đề xuất cho Đặng Văn G', 'Gửi email đề xuất chi tiết', 'email', 'in_progress', 'high', 'lead', 2, 2, '2024-11-24 16:00:00', 1),
-('Họp với Bùi Thị H', 'Thảo luận yêu cầu chi tiết', 'meeting', 'pending', 'urgent', 'lead', 3, 3, '2024-11-26 14:00:00', 2),
-('Chuẩn bị demo cho DEAL-2024-005', 'Tạo môi trường demo tùy chỉnh', 'demo', 'pending', 'medium', 'deal', 5, 2, '2024-11-28 09:00:00', 1),
-('Cập nhật dữ liệu CRM', 'Dọn dẹp và cập nhật hồ sơ khách hàng', 'task', 'completed', 'low', 'customer', 2, 2, '2024-11-20 17:00:00', 2);
+('Theo dõi với Nguyễn Văn A', 'Gọi điện thảo luận điều khoản gia hạn', 'call', 'pending', 'high', 'customer', 1, 2, '2026-11-25 10:00:00', 1),
+('Gửi đề xuất cho Đặng Văn G', 'Gửi email đề xuất chi tiết', 'email', 'pending', 'high', 'lead', 2, 2, '2026-11-24 16:00:00', 1),
+('Họp với Bùi Thị H', 'Thảo luận yêu cầu chi tiết', 'meeting', 'pending', 'urgent', 'lead', 3, 3, '2026-11-26 14:00:00', 2),
+('Chuẩn bị demo cho DEAL-2024-005', 'Tạo môi trường demo tùy chỉnh', 'demo', 'pending', 'medium', 'deal', 5, 2, '2026-11-28 09:00:00', 1),
+('Cập nhật dữ liệu CRM', 'Dọn dẹp và cập nhật hồ sơ khách hàng', 'task', 'completed', 'low', 'customer', 2, 2, '2026-11-20 17:00:00', 2);
 
 -- Insert sample activities
 INSERT INTO activities (activity_type, description, related_to_type, related_to_id, performed_by, metadata) VALUES

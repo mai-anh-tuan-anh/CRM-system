@@ -44,6 +44,7 @@ $customerData = [
     'full_name' => $lead['full_name'],
     'email' => $lead['email'],
     'phone' => $lead['phone'],
+    'dob' => $lead['dob'],
     'company_name' => $lead['company_name'],
     'address' => $lead['address'],
     'city' => $lead['city'],

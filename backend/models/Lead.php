@@ -100,9 +100,9 @@ class Lead {
         $leadCode = generateCode('LEAD', 'leads', 'lead_code');
         
         $stmt = $this->db->prepare("
-            INSERT INTO leads (lead_code, full_name, email, phone, company_name, job_title,
+            INSERT INTO leads (lead_code, full_name, email, phone, dob, company_name, job_title,
                 address, city, website, source, status, priority, score, assigned_to, notes, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $stmt->execute([
@@ -110,6 +110,7 @@ class Lead {
             $data['full_name'],
             $data['email'] ?? null,
             $data['phone'] ?? null,
+            $data['dob'] ?? null,
             $data['company_name'] ?? null,
             $data['job_title'] ?? null,
             $data['address'] ?? null,
@@ -134,7 +135,7 @@ class Lead {
         $fields = [];
         $params = [];
         
-        $allowedFields = ['full_name', 'email', 'phone', 'company_name', 'job_title',
+        $allowedFields = ['full_name', 'email', 'phone', 'dob', 'company_name', 'job_title',
                          'address', 'city', 'website', 'source', 'status', 'priority', 
                          'score', 'assigned_to', 'notes'];
         

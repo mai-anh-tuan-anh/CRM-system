@@ -304,6 +304,7 @@ function getStatusBadgeClass(status, type = 'status') {
         in_progress: 'badge-prospect',
         completed: 'badge-won',
         cancelled: 'badge-lost',
+        overdue: 'badge-danger',
 
         // Priority
         low: 'badge-low',
@@ -342,6 +343,7 @@ function formatStatus(status, type = 'status') {
         in_progress: 'Đang thực hiện',
         completed: 'Hoàn thành',
         cancelled: 'Đã hủy',
+        overdue: 'Quá hạn',
 
         // Priority
         low: 'Thấp',

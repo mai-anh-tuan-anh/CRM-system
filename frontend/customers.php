@@ -62,13 +62,10 @@ include 'components/sidebar.php';
                     <select class="form-select" id="sourceFilter">
                         <option value="">Tất cả nguồn</option>
                         <option value="Website">Website</option>
-                        <option value="Social Media">Mạng xã hội</option>
                         <option value="Referral">Giới thiệu</option>
-                        <option value="Email">Email</option>
-                        <option value="Phone">Điện thoại</option>
                         <option value="Event">Sự kiện</option>
-                        <option value="Other">Khác</option>
-                        <!-- Dynamic options -->
+                        <option value="Email">Email</option>
+                        <option value="Social Media">Mạng xã hội</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -152,6 +149,12 @@ include 'components/sidebar.php';
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" class="form-control" id="dob">
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Địa chỉ</label>
                             <input type="text" class="form-control" id="address">
@@ -180,12 +183,10 @@ include 'components/sidebar.php';
                             <select class="form-select" id="source">
                                 <option value="">Chọn nguồn</option>
                                 <option value="Website">Website</option>
-                                <option value="Social Media">Mạng xã hội</option>
                                 <option value="Referral">Giới thiệu</option>
-                                <option value="Email">Email</option>
-                                <option value="Phone">Điện thoại</option>
                                 <option value="Event">Sự kiện</option>
-                                <option value="Other">Khác</option>
+                                <option value="Email">Email</option>
+                                <option value="Social Media">Mạng xã hội</option>
                             </select>
                         </div>
                     </div>
@@ -438,6 +439,7 @@ function editCustomer(id) {
                 document.getElementById("companyName").value = c.company_name || "";
                 document.getElementById("email").value = c.email || "";
                 document.getElementById("phone").value = c.phone || "";
+                document.getElementById("dob").value = c.dob || "";
                 document.getElementById("address").value = c.address || "";
                 document.getElementById("city").value = c.city || "";
                 document.getElementById("industry").value = c.industry || "";
@@ -462,6 +464,7 @@ function saveCustomer(e) {
         company_name: document.getElementById("companyName").value,
         email: document.getElementById("email").value,
         phone: document.getElementById("phone").value,
+        dob: document.getElementById("dob").value,
         address: document.getElementById("address").value,
         city: document.getElementById("city").value,
         industry: document.getElementById("industry").value,
@@ -545,7 +548,7 @@ function importCustomers(e) {
 }
 
 function downloadSampleCSV() {
-    const csv = "full_name,email,phone,company_name,address,city,industry,source\nNguyen Van A,nguyenvana@email.com,0901234567,Cong ty A,123 Le Loi,TP.HCM,Technology,Website";
+    const csv = "full_name,email,phone,dob,company_name,address,city,industry,source\nNguyen Van A,nguyenvana@email.com,0901234567,1985-03-15,Cong ty A,123 Le Loi,TP.HCM,Technology,Website";
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
