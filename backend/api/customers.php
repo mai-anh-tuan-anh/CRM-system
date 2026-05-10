@@ -49,10 +49,9 @@ switch ($method) {
                 'search' => $_GET['search'] ?? null
             ];
             
-            // Non-admin can see their own assigned customers OR unassigned customers
-            if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to_or_null'] = $user['id'];
-            } elseif (!empty($_GET['assigned_to'])) {
+            // All roles can see all customers (permissions checked on write operations)
+            // Sales/Manager can view all but only edit their own
+            if (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
             
@@ -95,8 +94,8 @@ switch ($method) {
                 if (!empty($data['assigned_to']) && $data['assigned_to'] != $user['id']) {
                     createNotification(
                         $data['assigned_to'],
-                        'New Customer Assigned',
-                        "Customer {$data['full_name']} has been assigned to you",
+                        'Khách hàng mới',
+                        "Bạn được giao khách hàng: {$data['full_name']}",
                         'info',
                         'customer',
                         $customerId
@@ -143,8 +142,8 @@ switch ($method) {
             if ($newAssignedTo != $oldAssignedTo && $newAssignedTo != $user['id']) {
                 createNotification(
                     $newAssignedTo,
-                    'Customer Assigned',
-                    "Customer {$customer['full_name']} has been assigned to you",
+                    'Khách hàng được giao',
+                    "Bạn được giao khách hàng: {$customer['full_name']}",
                     'info',
                     'customer',
                     $customerId

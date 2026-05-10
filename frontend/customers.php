@@ -333,12 +333,65 @@ function sendEmail(email, name) {
         alert(\'Khách hàng chưa có email\');
         return;
     }
-    const subject = \'Liên hệ từ công ty chúng tôi\';
-    const body = \'Chào \' + name + \',\\n\\nTôi liên hệ với bạn về công việc. Vui lòng phản hồi khi có thể.\\n\\nTrân trọng,\';
-    const gmailUrl = \'https://mail.google.com/mail/?view=cm&to=\' + encodeURIComponent(email) + 
-                    \'&su=\' + encodeURIComponent(subject) + 
-                    \'&body=\' + encodeURIComponent(body);
-    window.open(gmailUrl, \'_blank\');
+    
+    // Fetch company info from settings
+    fetch(`${API_BASE_URL}/settings.php?group=company`)
+        .then(r => r.json())
+        .then(data => {
+            const s = data.success && data.data ? data.data : {};
+            const companyName = s.company_name || \'Công ty chúng tôi\';
+            const companyEmail = s.company_email || \'contact@company.com\';
+            const companyPhone = s.company_phone || \'0901234567\';
+            const companyAddress = s.company_address || \'Hà Nội, Việt Nam\';
+            
+            // Marketing template
+            const subject = `Ưu đãi đặc biệt từ ${companyName} - Dành riêng cho quý khách!`;
+            const body = `Kính gửi ${name},
+
+${companyName} xin gửi lời chào trân trọng nhất đến quý khách!
+
+Với hơn 10 năm kinh nghiệm trong ngành, chúng tôi tự hào là đối tác tin cậy của hàng ngàn doanh nghiệp trên toàn quốc. Sứ mệnh của chúng tôi là mang đến những giải pháp tối ưu, giúp khách hàng tiết kiệm chi phí và tối đa hóa lợi nhuận.
+
+🎁 ƯU ĐÃI ĐẶC BIỆT CHỈ DÀNH CHO QUÝ KHÁCH:
+
+✓ Giảm ngay 20% cho lần hợp tác đầu tiên
+✓ Tư vấn chuyên gia MIỄN PHÍ trị giá 5.000.000đ
+✓ Hỗ trợ 24/7 trong suốt quá trình sử dụng
+✓ Bảo hành dài hạn & hỗ trợ sau dự án
+
+⏰ Ưu đãi có hạn - Chỉ trong 7 ngày!
+
+Hãy liên hệ với chúng tôi ngay hôm nay để nhận ưu đãi và trải nghiệm dịch vụ đẳng cấp!
+
+☎ Hotline: ${companyPhone}
+📧 Email: ${companyEmail}
+📍 Địa chỉ: ${companyAddress}
+
+Chúng tôi rất mong được đồng hành cùng quý khách trên con đường phát triển!
+
+Trân trọng,
+${companyName}
+---
+${companyAddress}
+${companyEmail} | ${companyPhone}`;
+            
+            const gmailUrl = `https://mail.google.com/mail/u/0/?to=${encodeURIComponent(email)}` +
+                `&su=${encodeURIComponent(subject)}` +
+                `&body=${encodeURIComponent(body)}` +
+                `&fs=1&tf=cm`;
+            
+            window.open(gmailUrl, \'_blank\');
+        })
+        .catch(err => {
+            console.error(\'Lỗi load settings:\', err);
+            // Fallback nếu API lỗi
+            const subject = \'Liên hệ từ công ty chúng tôi\';
+            const body = \'Chào \' + name + \',\\n\\nTôi liên hệ với bạn về công việc. Vui lòng phản hồi khi có thể.\\n\\nTrân trọng,\';
+            const gmailUrl = \'https://mail.google.com/mail/?view=cm&to=\' + encodeURIComponent(email) + 
+                            \'&su=\' + encodeURIComponent(subject) + 
+                            \'&body=\' + encodeURIComponent(body);
+            window.open(gmailUrl, \'_blank\');
+        });
 }
 
 function renderTable(customers) {

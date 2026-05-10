@@ -118,17 +118,17 @@ class Deal {
             $dealCode,
             $data['title'],
             $data['description'] ?? null,
-            $data['customer_id'],
-            $data['lead_id'] ?? null,
-            $data['value'] ?? 0,
+            intval($data['customer_id']),
+            !empty($data['lead_id']) ? intval($data['lead_id']) : null,
+            floatval($data['value'] ?? 0),
             $data['currency'] ?? 'VND',
             $data['stage'] ?? 'prospect',
-            $data['probability'] ?? 0,
-            $data['expected_close_date'] ?? null,
-            $data['assigned_to'] ?? null,
+            intval($data['probability'] ?? 0),
+            !empty($data['expected_close_date']) ? $data['expected_close_date'] : null,
+            !empty($data['assigned_to']) ? intval($data['assigned_to']) : null,
             $data['source'] ?? null,
             $data['notes'] ?? null,
-            $data['created_by'] ?? null
+            !empty($data['created_by']) ? intval($data['created_by']) : null
         ]);
         
         return $this->db->lastInsertId();

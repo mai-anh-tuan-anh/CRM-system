@@ -42,19 +42,19 @@ switch ($method) {
         if (isset($data['action']) && $data['action'] === 'mark_all_read') {
             // Mark all as read
             if ($notificationModel->markAllAsRead($user['id'])) {
-                jsonSuccess(null, 'All notifications marked as read');
+                jsonSuccess(null, 'Đã đánh dấu tất cả thông báo là đã đọc');
             } else {
-                jsonError('Failed to mark notifications as read');
+                jsonError('Không thể đánh dấu thông báo đã đọc');
             }
         } elseif (!empty($data['id'])) {
             // Mark single as read
             if ($notificationModel->markAsRead($data['id'], $user['id'])) {
-                jsonSuccess(null, 'Notification marked as read');
+                jsonSuccess(null, 'Đã đánh dấu thông báo đã đọc');
             } else {
-                jsonError('Failed to mark notification as read');
+                jsonError('Không thể đánh dấu thông báo đã đọc');
             }
         } else {
-            jsonError('Notification ID or action required');
+            jsonError('Yêu cầu ID thông báo hoặc hành động');
         }
         break;
         
@@ -62,18 +62,18 @@ switch ($method) {
         $id = $_GET['id'] ?? null;
         
         if (!$id) {
-            jsonError('Notification ID is required');
+            jsonError('Yêu cầu ID thông báo');
         }
         
         $result = $notificationModel->delete($id, $user['id']);
         
         if ($result['success']) {
-            jsonSuccess(null, 'Notification deleted successfully');
+            jsonSuccess(null, 'Đã xóa thông báo thành công');
         } else {
             jsonError($result['message']);
         }
         break;
         
     default:
-        jsonError('Method not allowed', 405);
+        jsonError('Phương thức không được phép', 405);
 }

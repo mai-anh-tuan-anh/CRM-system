@@ -11,19 +11,21 @@ include 'components/sidebar.php';
 
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
-    
+
     <!-- Fix stat card font sizes to prevent overflow -->
     <style>
-        .card .card-body h3 {
-            font-size: 1.1rem;
-            white-space: nowrap;
-        }
-        .card .card-body .fs-2 {
-            font-size: 1.5rem !important;
-        }
-        .card .card-body .text-muted.small {
-            font-size: 0.75rem;
-        }
+    .card .card-body h3 {
+        font-size: 1.1rem;
+        white-space: nowrap;
+    }
+
+    .card .card-body .fs-2 {
+        font-size: 1.5rem !important;
+    }
+
+    .card .card-body .text-muted.small {
+        font-size: 0.75rem;
+    }
     </style>
 
     <!-- Page Header -->

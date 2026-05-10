@@ -41,9 +41,8 @@ switch ($method) {
             // Get pipeline data (Kanban view)
             $filters = [];
             
-            if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to_or_null'] = $user['id'];
-            } elseif (!empty($_GET['assigned_to'])) {
+            // All roles can see all deals
+            if (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
             
@@ -68,10 +67,8 @@ switch ($method) {
                 $filters['max_value'] = $_GET['max_value'];
             }
             
-            // Non-admin can see their own assigned deals OR unassigned deals
-            if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to_or_null'] = $user['id'];
-            } elseif (!empty($_GET['assigned_to'])) {
+            // All roles can see all deals (permissions checked on write operations)
+            if (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
             
@@ -121,8 +118,8 @@ switch ($method) {
             if (!empty($data['assigned_to']) && $data['assigned_to'] != $user['id']) {
                 createNotification(
                     $data['assigned_to'],
-                    'New Deal Assigned',
-                    "Deal {$data['title']} has been assigned to you",
+                    'Thỏa thuận mới',
+                    "Bạn được giao thỏa thuận: {$data['title']}",
                     'info',
                     'deal',
                     $dealId
@@ -170,8 +167,8 @@ switch ($method) {
             if ($newStage === 'won') {
                 createNotification(
                     $deal['assigned_to'] ?? $user['id'],
-                    'Deal Won! 🎉',
-                    "Deal {$deal['title']} has been won!",
+                    'Thỏa thuận thành công! 🎉',
+                    "Thỏa thuận {$deal['title']} đã thắng!",
                     'success',
                     'deal',
                     $dealId
@@ -179,8 +176,8 @@ switch ($method) {
             } elseif ($newStage === 'lost') {
                 createNotification(
                     $deal['assigned_to'] ?? $user['id'],
-                    'Deal Lost',
-                    "Deal {$deal['title']} has been lost",
+                    'Thỏa thuận thất bại',
+                    "Thỏa thuận {$deal['title']} đã thua",
                     'warning',
                     'deal',
                     $dealId
@@ -195,8 +192,8 @@ switch ($method) {
             if ($newAssignedTo != $oldAssignedTo && $newAssignedTo != $user['id']) {
                 createNotification(
                     $newAssignedTo,
-                    'Deal Assigned',
-                    "Deal {$deal['title']} has been assigned to you",
+                    'Thỏa thuận được giao',
+                    "Bạn được giao thỏa thuận: {$deal['title']}",
                     'info',
                     'deal',
                     $dealId

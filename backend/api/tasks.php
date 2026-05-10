@@ -48,10 +48,8 @@ switch ($method) {
                 'upcoming' => isset($_GET['upcoming']) ? true : null
             ];
             
-            // Non-admin can see their own assigned tasks OR unassigned tasks
-            if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to_or_null'] = $user['id'];
-            } elseif (!empty($_GET['assigned_to'])) {
+            // All roles can see all tasks (permissions checked on write operations)
+            if (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
             
@@ -101,8 +99,8 @@ switch ($method) {
             if ($data['assigned_to'] != $user['id']) {
                 createNotification(
                     $data['assigned_to'],
-                    'New Task Assigned',
-                    "Task {$data['title']} has been assigned to you",
+                    'Công việc mới',
+                    "Bạn được giao công việc: {$data['title']}",
                     'info',
                     'task',
                     $taskId
@@ -143,8 +141,8 @@ switch ($method) {
                 if ($task['created_by'] && $task['created_by'] != $user['id']) {
                     createNotification(
                         $task['created_by'],
-                        'Task Completed',
-                        "Task {$task['title']} has been completed by {$user['full_name']}",
+                        'Hoàn thành công việc',
+                        "{$user['full_name']} đã hoàn thành công việc: {$task['title']}",
                         'success',
                         'task',
                         $taskId
@@ -169,8 +167,8 @@ switch ($method) {
             if ($newAssignedTo != $oldAssignedTo && $newAssignedTo != $user['id']) {
                 createNotification(
                     $newAssignedTo,
-                    'Task Assigned',
-                    "Task {$task['title']} has been assigned to you",
+                    'Công việc được giao',
+                    "Bạn được giao công việc: {$task['title']}",
                     'info',
                     'task',
                     $taskId

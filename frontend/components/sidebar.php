@@ -18,9 +18,10 @@ function isActive($pages, $current) {
 
 <!-- Sidebar -->
 <nav class="sidebar">
-    <div class="sidebar-brand">
-        <i class="bi bi-grid-3x3-gap-fill"></i>
-        <h4>Hệ thống CRM</h4>
+    <div class="sidebar-brand" id="sidebarBrand">
+        <img id="sidebarLogo" src="" alt="Logo" style="max-height: 48px; max-width: 48px; border-radius: 6px; display: none; object-fit: contain; margin-right: 12px;">
+        <i id="sidebarDefaultIcon" class="bi bi-grid-3x3-gap-fill"></i>
+        <h4 id="sidebarCompanyName">Hệ thống CRM</h4>
     </div>
 
     <div class="nav-menu">
@@ -83,8 +84,8 @@ function isActive($pages, $current) {
         <!-- Divider -->
         <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
 
-        <!-- Báo cáo -->
-        <div class="nav-item">
+        <!-- Báo cáo (Admin & Manager only) -->
+        <div class="nav-item manager-admin-only" style="display: none;">
             <a href="reports.php" class="nav-link <?= isActive('reports', $currentPage) ?>">
                 <i class="bi bi-graph-up"></i>
                 <span>Báo cáo</span>
@@ -109,14 +110,45 @@ function isActive($pages, $current) {
 </nav>
 
 <script>
+// Load company branding
+fetch('/customer_management/backend/api/settings.php?group=company')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data) {
+            const s = data.data;
+            // Update company name
+            if (s.company_name) {
+                document.getElementById("sidebarCompanyName").textContent = s.company_name;
+            }
+            // Update logo
+            if (s.logo_url) {
+                const logoImg = document.getElementById("sidebarLogo");
+                logoImg.src = s.logo_url;
+                logoImg.style.display = "block";
+                document.getElementById("sidebarDefaultIcon").style.display = "none";
+            }
+        }
+    })
+    .catch(err => console.log('Không thể load company branding:', err));
+
 // Show admin menu items for admin users
 fetch('/customer_management/backend/api/auth.php?action=me')
     .then(response => response.json())
     .then(data => {
-        if (data.success && data.data.role === 'admin') {
-            document.querySelectorAll('.admin-only').forEach(el => {
-                el.style.display = 'block';
-            });
+        if (data.success) {
+            const role = data.data.role;
+            // Show admin-only items for admin
+            if (role === 'admin') {
+                document.querySelectorAll('.admin-only').forEach(el => {
+                    el.style.display = 'block';
+                });
+            }
+            // Show manager-admin items for admin and manager (hide for sales)
+            if (role === 'admin' || role === 'manager') {
+                document.querySelectorAll('.manager-admin-only').forEach(el => {
+                    el.style.display = 'block';
+                });
+            }
         }
     });
 </script>

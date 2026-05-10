@@ -103,16 +103,37 @@ class Setting {
     
     /**
      * Update multiple settings
+     * Supports both formats:
+     * 1. Flat object: ['key1' => 'value1', 'key2' => 'value2']
+     * 2. Array of objects: [['key' => 'key1', 'value' => 'value1'], ...]
      */
     public function updateMultiple($settings, $userId = null) {
         $updated = 0;
-        foreach ($settings as $setting) {
-            if (isset($setting['key']) && isset($setting['value'])) {
-                if ($this->set($setting['key'], $setting['value'], $setting['type'] ?? 'string', $setting['description'] ?? null, $userId)) {
-                    $updated++;
+        
+        // Check if it's a flat object (associative array with string keys)
+        if (is_array($settings) && !empty($settings)) {
+            $firstKey = array_keys($settings)[0];
+            
+            // If first key is string and value is not an array with 'key' property -> flat format
+            if (is_string($firstKey) && (!is_array($settings[$firstKey]) || !isset($settings[$firstKey]['key']))) {
+                // Flat object format: ['key1' => 'value1', 'key2' => 'value2']
+                foreach ($settings as $key => $value) {
+                    if ($this->set($key, $value, 'string', null, $userId)) {
+                        $updated++;
+                    }
+                }
+            } else {
+                // Array of objects format: [['key' => 'key1', 'value' => 'value1'], ...]
+                foreach ($settings as $setting) {
+                    if (isset($setting['key']) && isset($setting['value'])) {
+                        if ($this->set($setting['key'], $setting['value'], $setting['type'] ?? 'string', $setting['description'] ?? null, $userId)) {
+                            $updated++;
+                        }
+                    }
                 }
             }
         }
+        
         return $updated;
     }
     
@@ -130,12 +151,12 @@ class Setting {
      */
     public function getCompanyInfo() {
         return [
-            'name' => $this->getValue('company_name', 'My Company'),
-            'email' => $this->getValue('company_email', 'contact@company.com'),
-            'phone' => $this->getValue('company_phone', ''),
-            'address' => $this->getValue('company_address', ''),
-            'logo' => $this->getValue('company_logo', null),
-            'currency' => $this->getValue('currency', 'VND')
+            'company_name' => $this->getValue('company_name', 'My Company'),
+            'company_email' => $this->getValue('company_email', ''),
+            'company_phone' => $this->getValue('company_phone', ''),
+            'company_address' => $this->getValue('company_address', ''),
+            'logo_url' => $this->getValue('logo_url', ''),
+            'favicon_url' => $this->getValue('favicon_url', '')
         ];
     }
     
@@ -144,13 +165,11 @@ class Setting {
      */
     public function getEmailSettings() {
         return [
-            'smtp_host' => $this->getValue('email_smtp_host', 'smtp.gmail.com'),
-            'smtp_port' => $this->getValue('email_smtp_port', 587),
-            'smtp_encryption' => $this->getValue('email_smtp_encryption', 'tls'),
-            'smtp_username' => $this->getValue('email_smtp_username', ''),
-            'smtp_password' => $this->getValue('email_smtp_password', ''),
-            'from_address' => $this->getValue('email_from_address', 'noreply@crm.local'),
-            'from_name' => $this->getValue('email_from_name', 'CRM System')
+            'smtp_host' => $this->getValue('smtp_host', ''),
+            'smtp_port' => $this->getValue('smtp_port', ''),
+            'smtp_username' => $this->getValue('smtp_username', ''),
+            'smtp_password' => $this->getValue('smtp_password', ''),
+            'smtp_secure' => $this->getValue('smtp_secure', '0')
         ];
     }
     
@@ -159,12 +178,10 @@ class Setting {
      */
     public function getCRMSettings() {
         return [
-            'items_per_page' => $this->getValue('items_per_page', 20),
-            'lead_auto_assign' => $this->getValue('lead_auto_assign', false),
-            'deal_stages' => $this->getValue('deal_stages', ['prospect', 'qualification', 'proposal', 'negotiation', 'won', 'lost']),
-            'lead_sources' => $this->getValue('lead_sources', ['Website', 'Social Media', 'Referral', 'Email', 'Phone', 'Event', 'Other']),
-            'date_format' => $this->getValue('date_format', 'd/m/Y'),
-            'time_format' => $this->getValue('time_format', 'H:i')
+            'default_language' => $this->getValue('default_language', 'vi'),
+            'default_currency' => $this->getValue('default_currency', 'VND'),
+            'timezone' => $this->getValue('timezone', 'Asia/Ho_Chi_Minh'),
+            'date_format' => $this->getValue('date_format', 'd/m/Y')
         ];
     }
 }

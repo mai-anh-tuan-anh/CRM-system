@@ -12,9 +12,7 @@ $user = authenticate();
 
 // Build filters
 $filters = [];
-if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-    $filters['assigned_to'] = $user['id'];
-}
+// All roles can export all data
 
 // Get tasks data
 $taskModel = new Task();

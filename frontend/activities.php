@@ -37,7 +37,16 @@ include 'components/sidebar.php';
                         <option value="status_change">Thay đổi trạng thái</option>
                         <option value="file_upload">Tải file</option>
                         <option value="deal_created">Tạo thỏa thuận</option>
+                        <option value="deal_updated">Cập nhật thỏa thuận</option>
+                        <option value="deal_deleted">Xóa thỏa thuận</option>
+                        <option value="customer_created">Tạo khách hàng</option>
+                        <option value="customer_updated">Cập nhật khách hàng</option>
+                        <option value="lead_created">Tạo khách hàng tiềm năng</option>
                         <option value="lead_converted">Chuyển đổi lead</option>
+                        <option value="task_created">Tạo công việc</option>
+                        <option value="task_updated">Cập nhật công việc</option>
+                        <option value="login">Đăng nhập</option>
+                        <option value="logout">Đăng xuất</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -177,18 +186,78 @@ function renderTable(activities) {
         status_change: "Thay đổi trạng thái",
         file_upload: "Tải file",
         deal_created: "Tạo thỏa thuận",
-        lead_converted: "Chuyển đổi lead"
+        deal_updated: "Cập nhật thỏa thuận",
+        deal_deleted: "Xóa thỏa thuận",
+        customer_created: "Tạo khách hàng",
+        customer_updated: "Cập nhật khách hàng",
+        customer_deleted: "Xóa khách hàng",
+        lead_created: "Tạo khách hàng tiềm năng",
+        lead_updated: "Cập nhật KH tiềm năng",
+        lead_deleted: "Xóa KH tiềm năng",
+        lead_converted: "Chuyển đổi lead",
+        task_created: "Tạo công việc",
+        task_updated: "Cập nhật công việc",
+        task_deleted: "Xóa công việc",
+        user_created: "Tạo người dùng",
+        user_updated: "Cập nhật người dùng",
+        user_deleted: "Xóa người dùng",
+        login: "Đăng nhập",
+        logout: "Đăng xuất"
     };
 
     const typeIcons = {
-        call: "telephone",
-        email: "envelope",
-        meeting: "people",
-        note: "sticky",
+        call: "telephone-fill",
+        email: "envelope-fill",
+        meeting: "people-fill",
+        note: "sticky-fill",
         status_change: "arrow-repeat",
-        file_upload: "upload",
-        deal_created: "briefcase",
-        lead_converted: "arrow-right-circle"
+        file_upload: "cloud-arrow-up-fill",
+        deal_created: "briefcase-fill",
+        deal_updated: "pencil-square",
+        deal_deleted: "trash-fill",
+        customer_created: "person-plus-fill",
+        customer_updated: "person-gear",
+        customer_deleted: "person-x-fill",
+        lead_created: "bullseye",
+        lead_updated: "arrow-up-circle-fill",
+        lead_deleted: "x-circle-fill",
+        lead_converted: "arrow-right-circle",
+        task_created: "check-square-fill",
+        task_updated: "pencil-fill",
+        task_deleted: "trash3-fill",
+        user_created: "person-plus",
+        user_updated: "person-gear",
+        user_deleted: "person-dash",
+        login: "person-check",
+        logout: "power"
+    };
+
+    // Màu sắc cho từng loại hoạt động
+    const typeColors = {
+        call: "text-success",
+        email: "text-info",
+        meeting: "text-warning",
+        note: "text-secondary",
+        status_change: "text-primary",
+        file_upload: "text-info",
+        deal_created: "text-success",
+        deal_updated: "text-warning",
+        deal_deleted: "text-danger",
+        customer_created: "text-success",
+        customer_updated: "text-primary",
+        customer_deleted: "text-danger",
+        lead_created: "text-info",
+        lead_updated: "text-primary",
+        lead_deleted: "text-danger",
+        lead_converted: "text-success",
+        task_created: "text-primary",
+        task_updated: "text-warning",
+        task_deleted: "text-danger",
+        user_created: "text-success",
+        user_updated: "text-primary",
+        user_deleted: "text-danger",
+        login: "text-success",
+        logout: "text-secondary"
     };
 
     const relatedLabels = {
@@ -204,7 +273,7 @@ function renderTable(activities) {
             <td>
                 <div class="d-flex align-items-center">
                     <div class="activity-icon me-3 bg-light rounded-circle p-2">
-                        <i class="bi bi-${typeIcons[a.activity_type] || "circle"} text-primary fs-5"></i>
+                        <i class="bi bi-${typeIcons[a.activity_type] || "circle"} ${typeColors[a.activity_type] || "text-primary"} fs-5"></i>
                     </div>
                     <div>
                         <div class="fw-bold">${a.description}</div>

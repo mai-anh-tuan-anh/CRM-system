@@ -45,7 +45,8 @@ include 'components/sidebar.php';
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Địa chỉ</label>
-                        <textarea class="form-control" id="companyAddress" rows="3" placeholder="Địa chỉ công ty"></textarea>
+                        <textarea class="form-control" id="companyAddress" rows="3"
+                            placeholder="Địa chỉ công ty"></textarea>
                     </div>
                 </div>
             </div>
@@ -65,7 +66,8 @@ include 'components/sidebar.php';
                     </div>
                     <div class="mb-3">
                         <label class="form-label">URL Favicon</label>
-                        <input type="url" class="form-control" id="faviconUrl" placeholder="https://example.com/favicon.ico">
+                        <input type="url" class="form-control" id="faviconUrl"
+                            placeholder="https://example.com/favicon.ico">
                         <small class="text-muted">Nhập URL favicon (.ico, .png)</small>
                     </div>
                     <div class="mb-3">
@@ -184,13 +186,14 @@ include 'components/sidebar.php';
                             <td>Chỉnh sửa tất cả khách hàng</td>
                             <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
                             <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                            <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i> <small>(chỉ của mình)</small></td>
+                            <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i> <small></small>
+                            </td>
                         </tr>
                         <tr>
                             <td>Xóa khách hàng</td>
                             <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
                             <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                            <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
+                            <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
                         </tr>
                         <tr>
                             <td>Xem báo cáo</td>
@@ -201,7 +204,8 @@ include 'components/sidebar.php';
                         <tr>
                             <td>Quản lý người dùng</td>
                             <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                            <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i> <small>(xem)</small></td>
+                            <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i> <small></small>
+                            </td>
                             <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
                         </tr>
                         <tr>
@@ -213,7 +217,8 @@ include 'components/sidebar.php';
                     </tbody>
                 </table>
             </div>
-            <p class="text-muted small"><i class="bi bi-info-circle me-1"></i>Lưu ý: Bảng phân quyền này chỉ mang tính tham khảo. Để thay đổi quyền chi tiết, vui lòng liên hệ developer.</p>
+            <p class="text-muted small"><i class="bi bi-info-circle me-1"></i>Lưu ý: Bảng phân quyền này chỉ mang tính
+                tham khảo. Để thay đổi quyền chi tiết, vui lòng liên hệ developer.</p>
         </div>
     </div>
 </div>

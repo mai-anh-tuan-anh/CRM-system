@@ -145,7 +145,7 @@ CREATE TABLE tasks (
 -- 7. Activities/Interactions Log
 CREATE TABLE activities (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    activity_type ENUM('call', 'email', 'meeting', 'note', 'status_change', 'file_upload', 'deal_created', 'lead_converted') NOT NULL,
+    activity_type VARCHAR(50) NOT NULL,
     description TEXT,
     related_to_type ENUM('customer', 'lead', 'deal', 'task', 'user') NOT NULL,
     related_to_id INT NOT NULL,
@@ -308,16 +308,22 @@ INSERT INTO settings (setting_key, setting_value, setting_type, description) VAL
 ('company_name', 'My Company CRM', 'string', 'Company name displayed in the system'),
 ('company_email', 'contact@mycompany.com', 'string', 'Default company email address'),
 ('company_phone', '+84 123 456 789', 'string', 'Company contact phone'),
-('currency', 'VND', 'string', 'Default currency code'),
+('company_address', '', 'string', 'Company address'),
+('logo_url', '', 'string', 'URL to company logo'),
+('favicon_url', '', 'string', 'URL to favicon'),
+('default_language', 'vi', 'string', 'Default system language'),
+('default_currency', 'VND', 'string', 'Default currency code'),
+('timezone', 'Asia/Ho_Chi_Minh', 'string', 'System timezone'),
+('date_format', 'd/m/Y', 'string', 'Date format display'),
+('smtp_host', '', 'string', 'SMTP server host'),
+('smtp_port', '', 'string', 'SMTP server port'),
+('smtp_username', '', 'string', 'SMTP username'),
+('smtp_password', '', 'string', 'SMTP password'),
+('smtp_secure', '0', 'boolean', 'Use TLS/SSL for SMTP'),
 ('items_per_page', '20', 'integer', 'Number of items per page in lists'),
 ('lead_auto_assign', 'false', 'boolean', 'Automatically assign new leads'),
 ('deal_stages', '["prospect","qualification","proposal","negotiation","won","lost"]', 'json', 'Deal pipeline stages'),
-('lead_sources', '["Website","Social Media","Referral","Email","Phone","Event","Other"]', 'json', 'Lead source options'),
-('email_smtp_host', 'smtp.gmail.com', 'string', 'SMTP server host'),
-('email_smtp_port', '587', 'integer', 'SMTP server port'),
-('email_smtp_encryption', 'tls', 'string', 'SMTP encryption type'),
-('email_from_address', 'noreply@crm.local', 'string', 'Default from email address'),
-('email_from_name', 'CRM System', 'string', 'Default from name');
+('lead_sources', '["Website","Social Media","Referral","Email","Phone","Event","Other"]', 'json', 'Lead source options');
 
 -- Insert default email templates
 INSERT INTO email_templates (name, subject, body, variables, created_by) VALUES

@@ -21,8 +21,8 @@ $db = getDB();
 $results = [];
 $search = "%{$query}%";
 
-// User filter for non-admin
-$userFilter = ($user['role'] !== 'admin' && $user['role'] !== 'manager') ? "AND assigned_to = {$user['id']}" : '';
+// All roles can search all data
+$userFilter = '';
 
 // Search customers
 if ($type === 'all' || $type === 'customers') {

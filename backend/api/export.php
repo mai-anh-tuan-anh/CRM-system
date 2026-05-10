@@ -23,9 +23,7 @@ if (!in_array($type, $allowedTypes)) {
 
 // Build filter
 $filters = [];
-if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-    $filters['assigned_to'] = $user['id'];
-}
+// All roles can export all data
 
 // Get data based on type
 $data = [];

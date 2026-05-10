@@ -85,7 +85,7 @@ switch ($action) {
         }
         
         // Log activity
-        logActivity('login', 'User logged in', 'user', $user['id'], $user['id']);
+        logActivity('login', 'Đã đăng nhập vào hệ thống', 'user', $user['id'], $user['id']);
         
         jsonSuccess([
             'id' => $user['id'],
@@ -105,7 +105,7 @@ switch ($action) {
         startSession();
         
         if (isset($_SESSION['user_id'])) {
-            logActivity('logout', 'User logged out', 'user', $_SESSION['user_id'], $_SESSION['user_id']);
+            logActivity('logout', 'Đã đăng xuất khỏi hệ thống', 'user', $_SESSION['user_id'], $_SESSION['user_id']);
         }
         
         // Clear session

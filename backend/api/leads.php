@@ -44,10 +44,9 @@ switch ($method) {
                 'search' => $_GET['search'] ?? null
             ];
             
-            // Non-admin can see their own assigned leads OR unassigned leads
-            if ($user['role'] !== 'admin' && $user['role'] !== 'manager') {
-                $filters['assigned_to_or_null'] = $user['id'];
-            } elseif (!empty($_GET['assigned_to'])) {
+            // All roles can see all leads (permissions checked on write operations)
+            // Sales/Manager can view all but only edit their own
+            if (!empty($_GET['assigned_to'])) {
                 $filters['assigned_to'] = $_GET['assigned_to'];
             }
             
@@ -84,8 +83,8 @@ switch ($method) {
             if (!empty($data['assigned_to']) && $data['assigned_to'] != $user['id']) {
                 createNotification(
                     $data['assigned_to'],
-                    'New Lead Assigned',
-                    "Lead {$data['full_name']} has been assigned to you",
+                    'Khách hàng tiềm năng mới',
+                    "Bạn được giao khách hàng tiềm năng: {$data['full_name']}",
                     'info',
                     'lead',
                     $leadId
@@ -137,8 +136,8 @@ switch ($method) {
             if ($newAssignedTo != $oldAssignedTo && $newAssignedTo != $user['id']) {
                 createNotification(
                     $newAssignedTo,
-                    'Lead Assigned',
-                    "Lead {$lead['full_name']} has been assigned to you",
+                    'KH tiềm năng được giao',
+                    "Bạn được giao KH tiềm năng: {$lead['full_name']}",
                     'info',
                     'lead',
                     $leadId

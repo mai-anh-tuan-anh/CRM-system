@@ -15,7 +15,7 @@ include 'components/sidebar.php';
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Tổng quan</h1>
-        <div>
+        <div class="manager-admin-only" style="display: none;">
             <a href="reports.php" class="btn btn-sm btn-primary shadow-sm">
                 <i class="bi bi-graph-up me-2"></i>Xem báo cáo chi tiết
             </a>

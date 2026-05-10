@@ -24,8 +24,9 @@ $leadModel = new Lead();
 $taskModel = new Task();
 $activityModel = new Activity();
 
-// For sales users, filter by their assignments
-$userId = ($user['role'] === 'admin' || $user['role'] === 'manager') ? null : $user['id'];
+// For viewing data: Admin, Manager, and Sales can see all data
+// Only filter by user when specifically requested or for certain actions
+$userId = null; // Allow all roles to see all data for dashboard overview
 
 switch ($action) {
     case 'overview':
@@ -99,39 +100,14 @@ switch ($action) {
         break;
         
     case 'leads-summary':
-        // Get leads summary
+        // Get leads summary - all roles can see all data
         $stats = $leadModel->getStatistics();
-        
-        // If sales user, filter by assigned leads
-        if ($user['role'] === 'sales') {
-            $stmt = getDB()->prepare("SELECT status, COUNT(*) as count FROM leads WHERE assigned_to = ? GROUP BY status");
-            $stmt->execute([$user['id']]);
-            $stats['by_status'] = $stmt->fetchAll();
-            
-            $stmt = getDB()->prepare("SELECT COUNT(*) as count FROM leads WHERE assigned_to = ?");
-            $stmt->execute([$user['id']]);
-            $stats['total'] = $stmt->fetch()['count'];
-        }
-        
         jsonSuccess($stats);
         break;
         
     case 'deals-summary':
-        // Get deals summary
+        // Get deals summary - all roles can see all data
         $stats = $dealModel->getStatistics();
-        
-        // If sales user, filter by assigned deals
-        if ($user['role'] === 'sales') {
-            $db = getDB();
-            $stmt = $db->prepare("SELECT stage, COUNT(*) as count, SUM(value) as total_value FROM deals WHERE assigned_to = ? GROUP BY stage");
-            $stmt->execute([$user['id']]);
-            $stats['by_stage'] = $stmt->fetchAll();
-            
-            $stmt = $db->prepare("SELECT COUNT(*) as count FROM deals WHERE assigned_to = ?");
-            $stmt->execute([$user['id']]);
-            $stats['total'] = $stmt->fetch()['count'];
-        }
-        
         jsonSuccess($stats);
         break;
         

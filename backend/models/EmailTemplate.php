@@ -129,10 +129,19 @@ class EmailTemplate {
     
     /**
      * Parse template variables
+     * Auto-inject company info
      */
     public function parseTemplate($template, $variables) {
         $content = $template['body'];
         $subject = $template['subject'];
+        
+        // Load company info from settings
+        $companyName = $this->getSettingValue('company_name', 'My Company');
+        $companyEmail = $this->getSettingValue('company_email', '');
+        
+        // Auto-inject company variables
+        $variables['company_name'] = $companyName;
+        $variables['company_email'] = $companyEmail;
         
         foreach ($variables as $key => $value) {
             $placeholder = '{{' . $key . '}}';
@@ -144,6 +153,16 @@ class EmailTemplate {
             'subject' => $subject,
             'body' => $content
         ];
+    }
+    
+    /**
+     * Get setting value helper
+     */
+    private function getSettingValue($key, $default = null) {
+        $stmt = $this->db->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+        $stmt->execute([$key]);
+        $result = $stmt->fetch();
+        return $result ? $result['setting_value'] : $default;
     }
     
     /**
@@ -203,13 +222,16 @@ class EmailTemplate {
         $parsed = $this->parseTemplate($template, $variables);
         
         // Log email
+        // Get company email for from address
+        $companyEmail = $this->getSettingValue('company_email', 'noreply@crm.local');
+        
         $stmt = $this->db->prepare("
             INSERT INTO emails (template_id, from_email, to_email, subject, body, status, sent_by)
             VALUES (?, ?, ?, ?, ?, 'pending', ?)
         ");
         $stmt->execute([
             $templateId,
-            $from ?: $settings['email_from_address'] ?? 'noreply@crm.local',
+            $from ?: $companyEmail,
             $to,
             $parsed['subject'],
             $parsed['body'],
