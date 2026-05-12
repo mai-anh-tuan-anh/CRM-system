@@ -3,9 +3,9 @@
 -- Port: 8082
 
 -- Drop database if exists and create new
-DROP DATABASE IF EXISTS customer_management;
-CREATE DATABASE customer_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE customer_management;
+-- DROP DATABASE IF EXISTS customer_management;
+-- CREATE DATABASE customer_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE customer_management;
 
 -- 1. Users Table (Admin, Sales, Manager accounts)
 CREATE TABLE users (
@@ -375,7 +375,7 @@ INSERT INTO leads (lead_code, full_name, email, phone, dob, company_name, job_ti
 ('LEAD-2024-004', 'Lý Văn I', 'lyvani@email.com', '0989012345', '1989-02-14', 'Công ty I', 'Sales Manager', NULL, 'Hà Nội', NULL, 'Social Media', 'contacted', 'low', 60, 2, 'LinkedIn connection', 1),
 ('LEAD-2024-005', 'Ngô Thị K', 'ngothik@email.com', '0990123456', '1993-08-22', 'Công ty K', 'Operations Manager', '456 Nguyễn Huệ, Q1', 'TP.HCM', NULL, 'Email', 'new', 'medium', 50, 2, 'Email subscriber', 1);
 
---- Insert sample deals
+-- Insert sample deals
 INSERT INTO deals (deal_code, title, description, customer_id, value, currency, stage, probability, expected_close_date, actual_close_date, assigned_to, source, notes, created_by) VALUES
 ('DEAL-2024-001', 'Giấy phép phần mềm doanh nghiệp', 'Gói phần mềm doanh nghiệp đầy đủ', 1, 500000000, 'VND', 'negotiation', 80, '2026-12-31', NULL, 2, 'Website', 'Thỏa thuận giá trị cao đang thương lượng', 1),
 ('DEAL-2024-002', 'Hợp đồng bảo trì hàng năm', 'Bảo trì và hỗ trợ hàng năm', 2, 100000000, 'VND', 'proposal', 60, '2026-11-30', NULL, 2, 'Referral', 'Khách hàng cũ gia hạn', 1),

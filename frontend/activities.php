@@ -41,10 +41,15 @@ include 'components/sidebar.php';
                         <option value="deal_deleted">Xóa thỏa thuận</option>
                         <option value="customer_created">Tạo khách hàng</option>
                         <option value="customer_updated">Cập nhật khách hàng</option>
+                        <option value="customer_deleted">Xóa khách hàng</option>
                         <option value="lead_created">Tạo khách hàng tiềm năng</option>
+                        <option value="lead_updated">Cập nhật KH tiềm năng</option>
+                        <option value="lead_deleted">Xóa KH tiềm năng</option>
                         <option value="lead_converted">Chuyển đổi lead</option>
                         <option value="task_created">Tạo công việc</option>
                         <option value="task_updated">Cập nhật công việc</option>
+                        <option value="task_deleted">Xóa công việc</option>
+                        <option value="task_completed">Hoàn thành công việc</option>
                         <option value="login">Đăng nhập</option>
                         <option value="logout">Đăng xuất</option>
                     </select>
@@ -198,6 +203,7 @@ function renderTable(activities) {
         task_created: "Tạo công việc",
         task_updated: "Cập nhật công việc",
         task_deleted: "Xóa công việc",
+        task_completed: "Hoàn thành công việc",
         user_created: "Tạo người dùng",
         user_updated: "Cập nhật người dùng",
         user_deleted: "Xóa người dùng",
@@ -225,6 +231,7 @@ function renderTable(activities) {
         task_created: "check-square-fill",
         task_updated: "pencil-fill",
         task_deleted: "trash3-fill",
+        task_completed: "check-circle-fill",
         user_created: "person-plus",
         user_updated: "person-gear",
         user_deleted: "person-dash",
@@ -253,6 +260,7 @@ function renderTable(activities) {
         task_created: "text-primary",
         task_updated: "text-warning",
         task_deleted: "text-danger",
+        task_completed: "text-success",
         user_created: "text-success",
         user_updated: "text-primary",
         user_deleted: "text-danger",

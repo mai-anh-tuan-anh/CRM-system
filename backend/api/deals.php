@@ -13,6 +13,13 @@ require_once __DIR__ . '/../models/Customer.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $dealModel = new Deal();
 
+// Support method override for shared hosting (PUT via POST)
+if ($method === 'POST' && isset($_POST['_method'])) {
+    $method = strtoupper($_POST['_method']);
+} elseif ($method === 'POST' && isset($_GET['_method'])) {
+    $method = strtoupper($_GET['_method']);
+}
+
 // Require authentication
 $user = authenticate();
 

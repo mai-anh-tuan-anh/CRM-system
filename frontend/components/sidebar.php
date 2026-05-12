@@ -110,26 +110,45 @@ function isActive($pages, $current) {
 </nav>
 
 <script>
-// Load company branding
-fetch('/customer_management/backend/api/settings.php?group=company')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.data) {
-            const s = data.data;
-            // Update company name
-            if (s.company_name) {
-                document.getElementById("sidebarCompanyName").textContent = s.company_name;
-            }
-            // Update logo
-            if (s.logo_url) {
-                const logoImg = document.getElementById("sidebarLogo");
-                logoImg.src = s.logo_url;
-                logoImg.style.display = "block";
-                document.getElementById("sidebarDefaultIcon").style.display = "none";
-            }
+// Load company branding with localStorage cache
+(function loadCompanyBranding() {
+    // 1. Load from localStorage first (instant display)
+    const cached = localStorage.getItem('companyBranding');
+    if (cached) {
+        try {
+            const s = JSON.parse(cached);
+            applyBranding(s);
+        } catch (e) {
+            console.log('Cache error:', e);
         }
-    })
-    .catch(err => console.log('Không thể load company branding:', err));
+    }
+
+    // 2. Fetch from API to update
+    fetch('/customer_management/backend/api/settings.php?group=company')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.data) {
+                const s = data.data;
+                // Save to localStorage
+                localStorage.setItem('companyBranding', JSON.stringify(s));
+                // Apply to UI
+                applyBranding(s);
+            }
+        })
+        .catch(err => console.log('Không thể load company branding:', err));
+
+    function applyBranding(s) {
+        if (s.company_name) {
+            document.getElementById("sidebarCompanyName").textContent = s.company_name;
+        }
+        if (s.logo_url) {
+            const logoImg = document.getElementById("sidebarLogo");
+            logoImg.src = s.logo_url;
+            logoImg.style.display = "block";
+            document.getElementById("sidebarDefaultIcon").style.display = "none";
+        }
+    }
+})();
 
 // Show admin menu items for admin users
 fetch('/customer_management/backend/api/auth.php?action=me')

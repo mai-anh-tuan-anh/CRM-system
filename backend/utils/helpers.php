@@ -72,8 +72,8 @@ function canAccessResource($assignedTo, $createdBy = null) {
     requireAuth();
     $user = getCurrentUser();
     
-    // Admin and manager can access all
-    if (in_array($user['role'], ['admin', 'manager'])) {
+    // Admin, manager and sales can access all
+    if (in_array($user['role'], ['admin', 'manager', 'sales'])) {
         return true;
     }
     

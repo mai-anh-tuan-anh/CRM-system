@@ -12,6 +12,27 @@ include 'components/sidebar.php';
 <div class="main-content">
     <?php include 'components/navbar.php'; ?>
 
+    <!-- Permission Check -->
+    <script>
+        // Check if user has permission to access this page
+        fetch('/customer_management/backend/api/auth.php?action=me')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const role = data.data.role;
+                    // Sales cannot access reports
+                    if (role === 'sales') {
+                        window.location.href = 'dashboard.php';
+                    }
+                } else {
+                    window.location.href = 'login.php';
+                }
+            })
+            .catch(() => {
+                window.location.href = 'login.php';
+            });
+    </script>
+
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>

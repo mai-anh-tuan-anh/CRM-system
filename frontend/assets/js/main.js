@@ -21,7 +21,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize logout handler
     initLogout();
+
+    // Initialize sidebar toggle for mobile
+    initSidebarToggle();
 });
+
+/**
+ * Initialize sidebar toggle for mobile
+ */
+function initSidebarToggle() {
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', function () {
+            sidebar.classList.toggle('show');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function (e) {
+            if (window.innerWidth <= 768) {
+                if (
+                    !sidebar.contains(e.target) &&
+                    !toggleBtn.contains(e.target)
+                ) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+    }
+}
 
 /**
  * Check authentication status

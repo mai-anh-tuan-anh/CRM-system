@@ -76,7 +76,7 @@
                 <a class="dropdown-item" href="profile.php">
                     <i class="bi bi-person me-2"></i>Hồ sơ
                 </a>
-                <a class="dropdown-item" href="settings.php">
+                <a class="dropdown-item admin-only" href="settings.php" style="display: none;">
                     <i class="bi bi-gear me-2"></i>Cài đặt
                 </a>
                 <div class="dropdown-divider"></div>
@@ -201,4 +201,15 @@ loadRecentNotifications();
 
 // Refresh notifications every minute
 setInterval(loadNotifications, 60000);
+
+// Show admin-only items for admin users
+fetch('/customer_management/backend/api/auth.php?action=me')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data.role === 'admin') {
+            document.querySelectorAll('.dropdown-item.admin-only').forEach(el => {
+                el.style.display = 'block';
+            });
+        }
+    });
 </script>
