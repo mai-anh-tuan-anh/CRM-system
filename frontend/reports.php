@@ -169,6 +169,8 @@ include 'components/sidebar.php';
                             <th>Thắng</th>
                             <th>Thua</th>
                             <th>Doanh thu</th>
+                            <th>Số tác vụ hoàn thành</th>
+                            <th>Số tác vụ quá hạn</th>
                             <th>Tỷ lệ thắng</th>
                         </tr>
                     </thead>
@@ -499,7 +501,7 @@ function renderPerformanceTable() {
     const data = reportData.performance.data;
     
     if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không có dữ liệu</td></tr>`;
         return;
     }
     
@@ -519,6 +521,8 @@ function renderPerformanceTable() {
                 <td class="text-success">${p.won_count || 0}</td>
                 <td class="text-danger">${p.lost_count || 0}</td>
                 <td class="fw-bold">${formatCurrency(p.won_value || 0)}</td>
+                <td>${p.completed_tasks_count || 0}</td>
+                <td class="${(p.overdue_tasks_count || 0) > 0 ? "text-danger" : ""}">${p.overdue_tasks_count || 0}</td>
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="progress flex-grow-1 me-2" style="height: 6px;">
@@ -831,9 +835,9 @@ function confirmExport() {
     // Performance
     if (document.getElementById("exportPerformance")?.checked && reportData.performance) {
         csv += "HIỆU SUẤT NHÂN VIÊN\\n";
-        csv += "Nhân viên,Thỏa thuận,Thắng,Thua,Doanh thu\\n";
+        csv += "Nhân viên,Thỏa thuận,Thắng,Thua,Doanh thu,Số tác vụ hoàn thành,Số tác vụ quá hạn\\n";
         reportData.performance.data.forEach(p => {
-            csv += `${p.full_name},${p.deals_count},${p.won_count},${p.lost_count},${p.won_value}\\n`;
+            csv += `${p.full_name},${p.deals_count},${p.won_count},${p.lost_count},${p.won_value},${p.completed_tasks_count || 0},${p.overdue_tasks_count || 0}\\n`;
         });
     }
     

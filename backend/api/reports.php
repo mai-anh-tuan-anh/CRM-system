@@ -242,16 +242,47 @@ function getSalesPerformance($year) {
             COUNT(DISTINCT d.id) as deals_count,
             SUM(CASE WHEN d.stage = 'won' THEN d.value ELSE 0 END) as won_value,
             COUNT(CASE WHEN d.stage = 'won' THEN 1 END) as won_count,
-            COUNT(CASE WHEN d.stage = 'lost' THEN 1 END) as lost_count
+            COUNT(CASE WHEN d.stage = 'lost' THEN 1 END) as lost_count,
+            COALESCE(tc.completed_tasks_count, 0) as completed_tasks_count,
+            COALESCE(to2.overdue_tasks_count, 0) as overdue_tasks_count
         FROM users u
         LEFT JOIN deals d ON u.id = d.assigned_to AND YEAR(d.expected_close_date) = ?
+        LEFT JOIN (
+            SELECT
+                t.assigned_to,
+                COUNT(*) as completed_tasks_count
+            FROM tasks t
+            WHERE
+                t.status = 'completed'
+                AND t.completed_at IS NOT NULL
+                AND YEAR(t.completed_at) = ?
+            GROUP BY t.assigned_to
+        ) tc ON tc.assigned_to = u.id
+        LEFT JOIN (
+            SELECT
+                t.assigned_to,
+                COUNT(*) as overdue_tasks_count
+            FROM tasks t
+            WHERE
+                t.status != 'completed'
+                AND t.due_date IS NOT NULL
+                AND t.due_date < NOW()
+                AND YEAR(t.due_date) = ?
+            GROUP BY t.assigned_to
+        ) to2 ON to2.assigned_to = u.id
         WHERE u.role IN ('sales', 'manager')
-        GROUP BY u.id, u.full_name, u.avatar
+        GROUP BY
+            u.id,
+            u.full_name,
+            u.avatar,
+            tc.completed_tasks_count,
+            to2.overdue_tasks_count
         ORDER BY won_value DESC
     ";
     
     $stmt = $db->prepare($sql);
-    $stmt->execute([$year]);
+    // Params order must match the placeholders in the SQL above
+    $stmt->execute([$year, $year, $year]);
     return ['year' => $year, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
 }
 
